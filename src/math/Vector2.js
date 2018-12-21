@@ -119,6 +119,7 @@ Object.assign(Vector2.prototype, {
     return this;
   },
 
+  //两个向量的加法，返回结果
   addVectors: function(a, b) {
     this.x = a.x + b.x;
     this.y = a.y + b.y;
@@ -133,7 +134,7 @@ Object.assign(Vector2.prototype, {
     return this;
   },
 
-  //   向量减法
+  // 向量减法
   sub: function(v, w) {
     if (w !== undefined) {
       console.warn(
@@ -216,7 +217,7 @@ Object.assign(Vector2.prototype, {
     return this;
   },
 
-  // 夹逼方法，得到给定两个向量的最大范围
+  // 夹逼方法，得到min/max/this三个坐标点的“中间”点
   clamp: function(min, max) {
     this.x = Math.max(min.x, Math.min(max.x, this.x));
     this.y = Math.max(min.y, Math.min(max.y, this.y));

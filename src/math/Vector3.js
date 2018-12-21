@@ -2,7 +2,7 @@ import { _Math } from "./Math.js";
 import { Matrix4 } from "./Matrix4.js";
 import { Quaternion } from "./Quaternion.js";
 
-//  三维向量
+//  三维向量,其具备的方法类似二维向量对象
 function Vector3(x, y, z) {
   this.x = x || 0;
   this.y = y || 0;
@@ -227,6 +227,7 @@ Object.assign(Vector3.prototype, {
     return this;
   },
 
+  // 运动变换矩阵作用于三维坐标系，表示对该三维坐标系中的物体进行变换处理
   applyMatrix4: function(m) {
     var x = this.x,
       y = this.y,
