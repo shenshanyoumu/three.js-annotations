@@ -1,24 +1,17 @@
-/**
- * @author mrdoob / http://mrdoob.com/
- */
+// 规格化对象
+function Uniform(value) {
+  if (typeof value === "string") {
+    console.warn("THREE.Uniform: Type parameter is no longer needed.");
+    value = arguments[1];
+  }
 
-function Uniform( value ) {
-
-	if ( typeof value === 'string' ) {
-
-		console.warn( 'THREE.Uniform: Type parameter is no longer needed.' );
-		value = arguments[ 1 ];
-
-	}
-
-	this.value = value;
-
+  this.value = value;
 }
 
-Uniform.prototype.clone = function () {
-
-	return new Uniform( this.value.clone === undefined ? this.value : this.value.clone() );
-
+Uniform.prototype.clone = function() {
+  return new Uniform(
+    this.value.clone === undefined ? this.value : this.value.clone()
+  );
 };
 
 export { Uniform };

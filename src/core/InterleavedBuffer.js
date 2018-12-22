@@ -1,109 +1,83 @@
-
 /**
  * @author benaadams / https://twitter.com/ben_a_adams
  */
 
-function InterleavedBuffer( array, stride ) {
+function InterleavedBuffer(array, stride) {
+  this.array = array; //字符数组，每个元素表示一个UTF-8编码的字符
+  this.stride = stride; //从数组中采样的步长
+  this.count = array !== undefined ? array.length / stride : 0;
 
-	this.array = array;
-	this.stride = stride;
-	this.count = array !== undefined ? array.length / stride : 0;
+  this.dynamic = false;
+  this.updateRange = { offset: 0, count: -1 };
 
-	this.dynamic = false;
-	this.updateRange = { offset: 0, count: - 1 };
-
-	this.version = 0;
-
+  this.version = 0;
 }
 
-Object.defineProperty( InterleavedBuffer.prototype, 'needsUpdate', {
+Object.defineProperty(InterleavedBuffer.prototype, "needsUpdate", {
+  set: function(value) {
+    if (value === true) this.version++;
+  }
+});
 
-	set: function ( value ) {
+Object.assign(InterleavedBuffer.prototype, {
+  isInterleavedBuffer: true,
 
-		if ( value === true ) this.version ++;
+  onUploadCallback: function() {},
 
-	}
+  setArray: function(array) {
+    if (Array.isArray(array)) {
+      throw new TypeError(
+        "THREE.BufferAttribute: array should be a Typed Array."
+      );
+    }
 
-} );
+    this.count = array !== undefined ? array.length / this.stride : 0;
+    this.array = array;
+  },
 
-Object.assign( InterleavedBuffer.prototype, {
+  setDynamic: function(value) {
+    this.dynamic = value;
 
-	isInterleavedBuffer: true,
+    return this;
+  },
 
-	onUploadCallback: function () {},
+  copy: function(source) {
+    this.array = new source.array.constructor(source.array);
+    this.count = source.count;
+    this.stride = source.stride;
+    this.dynamic = source.dynamic;
 
-	setArray: function ( array ) {
+    return this;
+  },
 
-		if ( Array.isArray( array ) ) {
+  copyAt: function(index1, attribute, index2) {
+    index1 *= this.stride;
+    index2 *= attribute.stride;
 
-			throw new TypeError( 'THREE.BufferAttribute: array should be a Typed Array.' );
+    for (var i = 0, l = this.stride; i < l; i++) {
+      this.array[index1 + i] = attribute.array[index2 + i];
+    }
 
-		}
+    return this;
+  },
 
-		this.count = array !== undefined ? array.length / this.stride : 0;
-		this.array = array;
+  set: function(value, offset) {
+    if (offset === undefined) offset = 0;
 
-	},
+    this.array.set(value, offset);
 
-	setDynamic: function ( value ) {
+    return this;
+  },
 
-		this.dynamic = value;
+  clone: function() {
+    return new this.constructor().copy(this);
+  },
 
-		return this;
+  onUpload: function(callback) {
+    this.onUploadCallback = callback;
 
-	},
-
-	copy: function ( source ) {
-
-		this.array = new source.array.constructor( source.array );
-		this.count = source.count;
-		this.stride = source.stride;
-		this.dynamic = source.dynamic;
-
-		return this;
-
-	},
-
-	copyAt: function ( index1, attribute, index2 ) {
-
-		index1 *= this.stride;
-		index2 *= attribute.stride;
-
-		for ( var i = 0, l = this.stride; i < l; i ++ ) {
-
-			this.array[ index1 + i ] = attribute.array[ index2 + i ];
-
-		}
-
-		return this;
-
-	},
-
-	set: function ( value, offset ) {
-
-		if ( offset === undefined ) offset = 0;
-
-		this.array.set( value, offset );
-
-		return this;
-
-	},
-
-	clone: function () {
-
-		return new this.constructor().copy( this );
-
-	},
-
-	onUpload: function ( callback ) {
-
-		this.onUploadCallback = callback;
-
-		return this;
-
-	}
-
-} );
-
+    return this;
+  }
+});
 
 export { InterleavedBuffer };

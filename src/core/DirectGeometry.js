@@ -1,263 +1,222 @@
-/**
- * @author mrdoob / http://mrdoob.com/
- */
-
-import { Vector2 } from '../math/Vector2.js';
+import { Vector2 } from "../math/Vector2.js";
 
 // 没有缓存属性的geometry
 function DirectGeometry() {
+  // 几何模型由顶点、每个三角面法向量、每个顶点颜色，UV纹理映射坐标构成
+  this.vertices = [];
+  this.normals = [];
+  this.colors = [];
+  this.uvs = [];
+  this.uvs2 = [];
 
-	this.vertices = [];
-	this.normals = [];
-	this.colors = [];
-	this.uvs = [];
-	this.uvs2 = [];
+  // 几何模型的分组，可以形成具有变换整体的结构
+  this.groups = [];
 
-	this.groups = [];
+  // 对于一些动画表现的增强
+  this.morphTargets = {};
+  this.skinWeights = [];
+  this.skinIndices = [];
 
-	this.morphTargets = {};
+  // 几何模型的包围盒和包围球，常用于模型碰撞检测
+  this.boundingBox = null;
+  this.boundingSphere = null;
 
-	this.skinWeights = [];
-	this.skinIndices = [];
-
-	// this.lineDistances = [];
-
-	this.boundingBox = null;
-	this.boundingSphere = null;
-
-	// update flags
-
-	this.verticesNeedUpdate = false;
-	this.normalsNeedUpdate = false;
-	this.colorsNeedUpdate = false;
-	this.uvsNeedUpdate = false;
-	this.groupsNeedUpdate = false;
-
+  // 当几何模型发生变化时，指示下列属性更新
+  this.verticesNeedUpdate = false;
+  this.normalsNeedUpdate = false;
+  this.colorsNeedUpdate = false;
+  this.uvsNeedUpdate = false;
+  this.groupsNeedUpdate = false;
 }
 
-Object.assign( DirectGeometry.prototype, {
+Object.assign(DirectGeometry.prototype, {
+  computeGroups: function(geometry) {
+    var group;
+    var groups = [];
+    var materialIndex = undefined;
 
-	computeGroups: function ( geometry ) {
+    var faces = geometry.faces;
 
-		var group;
-		var groups = [];
-		var materialIndex = undefined;
+    for (var i = 0; i < faces.length; i++) {
+      var face = faces[i];
 
-		var faces = geometry.faces;
+      // materials
 
-		for ( var i = 0; i < faces.length; i ++ ) {
+      if (face.materialIndex !== materialIndex) {
+        materialIndex = face.materialIndex;
 
-			var face = faces[ i ];
+        if (group !== undefined) {
+          group.count = i * 3 - group.start;
+          groups.push(group);
+        }
 
-			// materials
+        group = {
+          start: i * 3,
+          materialIndex: materialIndex
+        };
+      }
+    }
 
-			if ( face.materialIndex !== materialIndex ) {
+    if (group !== undefined) {
+      group.count = i * 3 - group.start;
+      groups.push(group);
+    }
 
-				materialIndex = face.materialIndex;
+    this.groups = groups;
+  },
 
-				if ( group !== undefined ) {
+  fromGeometry: function(geometry) {
+    var faces = geometry.faces;
+    var vertices = geometry.vertices;
+    var faceVertexUvs = geometry.faceVertexUvs;
 
-					group.count = ( i * 3 ) - group.start;
-					groups.push( group );
+    var hasFaceVertexUv = faceVertexUvs[0] && faceVertexUvs[0].length > 0;
+    var hasFaceVertexUv2 = faceVertexUvs[1] && faceVertexUvs[1].length > 0;
 
-				}
+    // morphs
 
-				group = {
-					start: i * 3,
-					materialIndex: materialIndex
-				};
+    var morphTargets = geometry.morphTargets;
+    var morphTargetsLength = morphTargets.length;
 
-			}
+    var morphTargetsPosition;
 
-		}
+    if (morphTargetsLength > 0) {
+      morphTargetsPosition = [];
 
-		if ( group !== undefined ) {
+      for (var i = 0; i < morphTargetsLength; i++) {
+        morphTargetsPosition[i] = [];
+      }
 
-			group.count = ( i * 3 ) - group.start;
-			groups.push( group );
+      this.morphTargets.position = morphTargetsPosition;
+    }
 
-		}
+    var morphNormals = geometry.morphNormals;
+    var morphNormalsLength = morphNormals.length;
 
-		this.groups = groups;
+    var morphTargetsNormal;
 
-	},
+    if (morphNormalsLength > 0) {
+      morphTargetsNormal = [];
 
-	fromGeometry: function ( geometry ) {
+      for (var i = 0; i < morphNormalsLength; i++) {
+        morphTargetsNormal[i] = [];
+      }
 
-		var faces = geometry.faces;
-		var vertices = geometry.vertices;
-		var faceVertexUvs = geometry.faceVertexUvs;
+      this.morphTargets.normal = morphTargetsNormal;
+    }
 
-		var hasFaceVertexUv = faceVertexUvs[ 0 ] && faceVertexUvs[ 0 ].length > 0;
-		var hasFaceVertexUv2 = faceVertexUvs[ 1 ] && faceVertexUvs[ 1 ].length > 0;
+    // skins
 
-		// morphs
+    var skinIndices = geometry.skinIndices;
+    var skinWeights = geometry.skinWeights;
 
-		var morphTargets = geometry.morphTargets;
-		var morphTargetsLength = morphTargets.length;
+    var hasSkinIndices = skinIndices.length === vertices.length;
+    var hasSkinWeights = skinWeights.length === vertices.length;
 
-		var morphTargetsPosition;
+    //
 
-		if ( morphTargetsLength > 0 ) {
+    for (var i = 0; i < faces.length; i++) {
+      var face = faces[i];
 
-			morphTargetsPosition = [];
+      this.vertices.push(vertices[face.a], vertices[face.b], vertices[face.c]);
 
-			for ( var i = 0; i < morphTargetsLength; i ++ ) {
+      var vertexNormals = face.vertexNormals;
 
-				morphTargetsPosition[ i ] = [];
+      if (vertexNormals.length === 3) {
+        this.normals.push(vertexNormals[0], vertexNormals[1], vertexNormals[2]);
+      } else {
+        var normal = face.normal;
 
-			}
+        this.normals.push(normal, normal, normal);
+      }
 
-			this.morphTargets.position = morphTargetsPosition;
-
-		}
-
-		var morphNormals = geometry.morphNormals;
-		var morphNormalsLength = morphNormals.length;
-
-		var morphTargetsNormal;
-
-		if ( morphNormalsLength > 0 ) {
-
-			morphTargetsNormal = [];
-
-			for ( var i = 0; i < morphNormalsLength; i ++ ) {
-
-				morphTargetsNormal[ i ] = [];
-
-			}
-
-			this.morphTargets.normal = morphTargetsNormal;
-
-		}
-
-		// skins
-
-		var skinIndices = geometry.skinIndices;
-		var skinWeights = geometry.skinWeights;
-
-		var hasSkinIndices = skinIndices.length === vertices.length;
-		var hasSkinWeights = skinWeights.length === vertices.length;
-
-		//
-
-		for ( var i = 0; i < faces.length; i ++ ) {
-
-			var face = faces[ i ];
-
-			this.vertices.push( vertices[ face.a ], vertices[ face.b ], vertices[ face.c ] );
-
-			var vertexNormals = face.vertexNormals;
-
-			if ( vertexNormals.length === 3 ) {
-
-				this.normals.push( vertexNormals[ 0 ], vertexNormals[ 1 ], vertexNormals[ 2 ] );
-
-			} else {
-
-				var normal = face.normal;
-
-				this.normals.push( normal, normal, normal );
-
-			}
-
-			var vertexColors = face.vertexColors;
-
-			if ( vertexColors.length === 3 ) {
-
-				this.colors.push( vertexColors[ 0 ], vertexColors[ 1 ], vertexColors[ 2 ] );
-
-			} else {
-
-				var color = face.color;
-
-				this.colors.push( color, color, color );
-
-			}
-
-			if ( hasFaceVertexUv === true ) {
-
-				var vertexUvs = faceVertexUvs[ 0 ][ i ];
-
-				if ( vertexUvs !== undefined ) {
-
-					this.uvs.push( vertexUvs[ 0 ], vertexUvs[ 1 ], vertexUvs[ 2 ] );
-
-				} else {
-
-					console.warn( 'THREE.DirectGeometry.fromGeometry(): Undefined vertexUv ', i );
-
-					this.uvs.push( new Vector2(), new Vector2(), new Vector2() );
-
-				}
-
-			}
-
-			if ( hasFaceVertexUv2 === true ) {
-
-				var vertexUvs = faceVertexUvs[ 1 ][ i ];
-
-				if ( vertexUvs !== undefined ) {
-
-					this.uvs2.push( vertexUvs[ 0 ], vertexUvs[ 1 ], vertexUvs[ 2 ] );
-
-				} else {
-
-					console.warn( 'THREE.DirectGeometry.fromGeometry(): Undefined vertexUv2 ', i );
-
-					this.uvs2.push( new Vector2(), new Vector2(), new Vector2() );
-
-				}
-
-			}
-
-			// morphs
-
-			for ( var j = 0; j < morphTargetsLength; j ++ ) {
-
-				var morphTarget = morphTargets[ j ].vertices;
-
-				morphTargetsPosition[ j ].push( morphTarget[ face.a ], morphTarget[ face.b ], morphTarget[ face.c ] );
-
-			}
-
-			for ( var j = 0; j < morphNormalsLength; j ++ ) {
-
-				var morphNormal = morphNormals[ j ].vertexNormals[ i ];
-
-				morphTargetsNormal[ j ].push( morphNormal.a, morphNormal.b, morphNormal.c );
-
-			}
-
-			// skins
-
-			if ( hasSkinIndices ) {
-
-				this.skinIndices.push( skinIndices[ face.a ], skinIndices[ face.b ], skinIndices[ face.c ] );
-
-			}
-
-			if ( hasSkinWeights ) {
-
-				this.skinWeights.push( skinWeights[ face.a ], skinWeights[ face.b ], skinWeights[ face.c ] );
-
-			}
-
-		}
-
-		this.computeGroups( geometry );
-
-		this.verticesNeedUpdate = geometry.verticesNeedUpdate;
-		this.normalsNeedUpdate = geometry.normalsNeedUpdate;
-		this.colorsNeedUpdate = geometry.colorsNeedUpdate;
-		this.uvsNeedUpdate = geometry.uvsNeedUpdate;
-		this.groupsNeedUpdate = geometry.groupsNeedUpdate;
-
-		return this;
-
-	}
-
-} );
-
+      var vertexColors = face.vertexColors;
+
+      if (vertexColors.length === 3) {
+        this.colors.push(vertexColors[0], vertexColors[1], vertexColors[2]);
+      } else {
+        var color = face.color;
+
+        this.colors.push(color, color, color);
+      }
+
+      if (hasFaceVertexUv === true) {
+        var vertexUvs = faceVertexUvs[0][i];
+
+        if (vertexUvs !== undefined) {
+          this.uvs.push(vertexUvs[0], vertexUvs[1], vertexUvs[2]);
+        } else {
+          console.warn(
+            "THREE.DirectGeometry.fromGeometry(): Undefined vertexUv ",
+            i
+          );
+
+          this.uvs.push(new Vector2(), new Vector2(), new Vector2());
+        }
+      }
+
+      if (hasFaceVertexUv2 === true) {
+        var vertexUvs = faceVertexUvs[1][i];
+
+        if (vertexUvs !== undefined) {
+          this.uvs2.push(vertexUvs[0], vertexUvs[1], vertexUvs[2]);
+        } else {
+          console.warn(
+            "THREE.DirectGeometry.fromGeometry(): Undefined vertexUv2 ",
+            i
+          );
+
+          this.uvs2.push(new Vector2(), new Vector2(), new Vector2());
+        }
+      }
+
+      // morphs
+
+      for (var j = 0; j < morphTargetsLength; j++) {
+        var morphTarget = morphTargets[j].vertices;
+
+        morphTargetsPosition[j].push(
+          morphTarget[face.a],
+          morphTarget[face.b],
+          morphTarget[face.c]
+        );
+      }
+
+      for (var j = 0; j < morphNormalsLength; j++) {
+        var morphNormal = morphNormals[j].vertexNormals[i];
+
+        morphTargetsNormal[j].push(morphNormal.a, morphNormal.b, morphNormal.c);
+      }
+
+      // skins
+
+      if (hasSkinIndices) {
+        this.skinIndices.push(
+          skinIndices[face.a],
+          skinIndices[face.b],
+          skinIndices[face.c]
+        );
+      }
+
+      if (hasSkinWeights) {
+        this.skinWeights.push(
+          skinWeights[face.a],
+          skinWeights[face.b],
+          skinWeights[face.c]
+        );
+      }
+    }
+
+    this.computeGroups(geometry);
+
+    this.verticesNeedUpdate = geometry.verticesNeedUpdate;
+    this.normalsNeedUpdate = geometry.normalsNeedUpdate;
+    this.colorsNeedUpdate = geometry.colorsNeedUpdate;
+    this.uvsNeedUpdate = geometry.uvsNeedUpdate;
+    this.groupsNeedUpdate = geometry.groupsNeedUpdate;
+
+    return this;
+  }
+});
 
 export { DirectGeometry };

@@ -342,6 +342,7 @@ Object.assign(Matrix4.prototype, {
     return this;
   },
 
+  // 当模型发生"lookAt"动作，则对应变换矩阵
   lookAt: (function() {
     var x = new Vector3();
     var y = new Vector3();
@@ -402,6 +403,7 @@ Object.assign(Matrix4.prototype, {
     return this.multiplyMatrices(this, m);
   },
 
+  // 矩阵相乘
   premultiply: function(m) {
     return this.multiplyMatrices(m, this);
   },

@@ -1,35 +1,27 @@
-import { BufferAttribute } from './BufferAttribute.js';
+import { BufferAttribute } from "./BufferAttribute.js";
 
-/**
- * @author benaadams / https://twitter.com/ben_a_adams
- */
+// 实例化的具有缓存结构的属性对象
+function InstancedBufferAttribute(array, itemSize, meshPerAttribute) {
+  BufferAttribute.call(this, array, itemSize);
 
-function InstancedBufferAttribute( array, itemSize, meshPerAttribute ) {
-
-	BufferAttribute.call( this, array, itemSize );
-
-	this.meshPerAttribute = meshPerAttribute || 1;
-
+  this.meshPerAttribute = meshPerAttribute || 1;
 }
 
-InstancedBufferAttribute.prototype = Object.assign( Object.create( BufferAttribute.prototype ), {
+InstancedBufferAttribute.prototype = Object.assign(
+  Object.create(BufferAttribute.prototype),
+  {
+    constructor: InstancedBufferAttribute,
 
-	constructor: InstancedBufferAttribute,
+    isInstancedBufferAttribute: true,
 
-	isInstancedBufferAttribute: true,
+    copy: function(source) {
+      BufferAttribute.prototype.copy.call(this, source);
 
-	copy: function ( source ) {
+      this.meshPerAttribute = source.meshPerAttribute;
 
-		BufferAttribute.prototype.copy.call( this, source );
-
-		this.meshPerAttribute = source.meshPerAttribute;
-
-		return this;
-
-	}
-
-} );
-
-
+      return this;
+    }
+  }
+);
 
 export { InstancedBufferAttribute };

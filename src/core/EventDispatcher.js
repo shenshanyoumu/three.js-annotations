@@ -1,14 +1,12 @@
-/**
- * https://github.com/mrdoob/eventdispatcher.js/
- */
-
-//  事件触发器
+//  事件分发器，基于观察者模式实现的Three.js事件系统
 function EventDispatcher() {}
 
 Object.assign(EventDispatcher.prototype, {
   // 在给定事件类型上添加事件处理器
   addEventListener: function(type, listener) {
-    if (this._listeners === undefined) this._listeners = {};
+    if (this._listeners === undefined) {
+      this._listeners = {};
+    }
 
     var listeners = this._listeners;
 

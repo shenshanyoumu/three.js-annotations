@@ -1,15 +1,10 @@
 import { Ray } from "../math/Ray.js";
 
-/**
- * @author mrdoob / http://mrdoob.com/
- * @author bhouston / http://clara.io/
- * @author stephomi / http://stephaneginier.com/
- */
-
-//  用于物体遮挡检测、碰撞检测等。射线抛射器的起点、方向、以及与起点的远近点
+//射线抛射器用于物体遮挡检测、碰撞检测等。
+// 参数分为射线抛射器的起点、方向、以及与起点的远近点
 function Raycaster(origin, direction, near, far) {
+  // 构建测试射线
   this.ray = new Ray(origin, direction);
-  // direction is assumed to be normalized (for accurate distance calculations)
 
   this.near = near || 0;
   this.far = far || Infinity;
@@ -34,6 +29,7 @@ function Raycaster(origin, direction, near, far) {
   });
 }
 
+// 基于距离进行降序排序
 function ascSort(a, b) {
   return a.distance - b.distance;
 }
@@ -42,6 +38,7 @@ function ascSort(a, b) {
 function intersectObject(object, raycaster, intersects, recursive) {
   if (object.visible === false) return;
 
+  // 具体的Object类实现raycast方法
   object.raycast(raycaster, intersects);
 
   if (recursive === true) {
@@ -85,6 +82,7 @@ Object.assign(Raycaster.prototype, {
     }
   },
 
+  // 按与当前射线抛射器相交的距离的得到一系列相交的模型
   intersectObject: function(object, recursive, optionalTarget) {
     var intersects = optionalTarget || [];
 
