@@ -3,111 +3,109 @@
  * @author Mugen87 / https://github.com/Mugen87
  */
 
-import { BufferGeometry } from '../core/BufferGeometry.js';
-import { Float32BufferAttribute } from '../core/BufferAttribute.js';
-import { Geometry } from '../core/Geometry.js';
-import { _Math } from '../math/Math.js';
+import { BufferGeometry } from "../core/BufferGeometry.js";
+import { Float32BufferAttribute } from "../core/BufferAttribute.js";
+import { Geometry } from "../core/Geometry.js";
+import { _Math } from "../math/Math.js";
 
-function EdgesGeometry( geometry, thresholdAngle ) {
+/**
+ * 几何体边框辅助线
+ * @param {*} geometry 需要标注边框线的几何体
+ * @param {*} thresholdAngle 当几何体上相邻平面的法向量的夹角大于该阈值，才会显示边界线
+ */
+function EdgesGeometry(geometry, thresholdAngle) {
+  BufferGeometry.call(this);
 
-	BufferGeometry.call( this );
+  this.type = "EdgesGeometry";
 
-	this.type = 'EdgesGeometry';
+  this.parameters = {
+    thresholdAngle: thresholdAngle
+  };
 
-	this.parameters = {
-		thresholdAngle: thresholdAngle
-	};
+  thresholdAngle = thresholdAngle !== undefined ? thresholdAngle : 1;
 
-	thresholdAngle = ( thresholdAngle !== undefined ) ? thresholdAngle : 1;
+  // buffer
 
-	// buffer
+  var vertices = [];
 
-	var vertices = [];
+  // helper variables
 
-	// helper variables
+  var thresholdDot = Math.cos(_Math.DEG2RAD * thresholdAngle);
+  var edge = [0, 0],
+    edges = {},
+    edge1,
+    edge2;
+  var key,
+    keys = ["a", "b", "c"];
 
-	var thresholdDot = Math.cos( _Math.DEG2RAD * thresholdAngle );
-	var edge = [ 0, 0 ], edges = {}, edge1, edge2;
-	var key, keys = [ 'a', 'b', 'c' ];
+  // prepare source geometry
 
-	// prepare source geometry
+  var geometry2;
 
-	var geometry2;
+  if (geometry.isBufferGeometry) {
+    geometry2 = new Geometry();
+    geometry2.fromBufferGeometry(geometry);
+  } else {
+    geometry2 = geometry.clone();
+  }
 
-	if ( geometry.isBufferGeometry ) {
+  geometry2.mergeVertices();
+  geometry2.computeFaceNormals();
 
-		geometry2 = new Geometry();
-		geometry2.fromBufferGeometry( geometry );
+  var sourceVertices = geometry2.vertices;
+  var faces = geometry2.faces;
 
-	} else {
+  // now create a data structure where each entry represents an edge with its adjoining faces
 
-		geometry2 = geometry.clone();
+  for (var i = 0, l = faces.length; i < l; i++) {
+    var face = faces[i];
 
-	}
+    for (var j = 0; j < 3; j++) {
+      edge1 = face[keys[j]];
+      edge2 = face[keys[(j + 1) % 3]];
+      edge[0] = Math.min(edge1, edge2);
+      edge[1] = Math.max(edge1, edge2);
 
-	geometry2.mergeVertices();
-	geometry2.computeFaceNormals();
+      key = edge[0] + "," + edge[1];
 
-	var sourceVertices = geometry2.vertices;
-	var faces = geometry2.faces;
+      if (edges[key] === undefined) {
+        edges[key] = {
+          index1: edge[0],
+          index2: edge[1],
+          face1: i,
+          face2: undefined
+        };
+      } else {
+        edges[key].face2 = i;
+      }
+    }
+  }
 
-	// now create a data structure where each entry represents an edge with its adjoining faces
+  // generate vertices
 
-	for ( var i = 0, l = faces.length; i < l; i ++ ) {
+  for (key in edges) {
+    var e = edges[key];
 
-		var face = faces[ i ];
+    // an edge is only rendered if the angle (in degrees) between the face normals of the adjoining faces exceeds this value. default = 1 degree.
 
-		for ( var j = 0; j < 3; j ++ ) {
+    if (
+      e.face2 === undefined ||
+      faces[e.face1].normal.dot(faces[e.face2].normal) <= thresholdDot
+    ) {
+      var vertex = sourceVertices[e.index1];
+      vertices.push(vertex.x, vertex.y, vertex.z);
 
-			edge1 = face[ keys[ j ] ];
-			edge2 = face[ keys[ ( j + 1 ) % 3 ] ];
-			edge[ 0 ] = Math.min( edge1, edge2 );
-			edge[ 1 ] = Math.max( edge1, edge2 );
+      vertex = sourceVertices[e.index2];
+      vertices.push(vertex.x, vertex.y, vertex.z);
+    }
+  }
 
-			key = edge[ 0 ] + ',' + edge[ 1 ];
+  // build geometry
 
-			if ( edges[ key ] === undefined ) {
-
-				edges[ key ] = { index1: edge[ 0 ], index2: edge[ 1 ], face1: i, face2: undefined };
-
-			} else {
-
-				edges[ key ].face2 = i;
-
-			}
-
-		}
-
-	}
-
-	// generate vertices
-
-	for ( key in edges ) {
-
-		var e = edges[ key ];
-
-		// an edge is only rendered if the angle (in degrees) between the face normals of the adjoining faces exceeds this value. default = 1 degree.
-
-		if ( e.face2 === undefined || faces[ e.face1 ].normal.dot( faces[ e.face2 ].normal ) <= thresholdDot ) {
-
-			var vertex = sourceVertices[ e.index1 ];
-			vertices.push( vertex.x, vertex.y, vertex.z );
-
-			vertex = sourceVertices[ e.index2 ];
-			vertices.push( vertex.x, vertex.y, vertex.z );
-
-		}
-
-	}
-
-	// build geometry
-
-	this.addAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
-
+  this.addAttribute("position", new Float32BufferAttribute(vertices, 3));
 }
 
-EdgesGeometry.prototype = Object.create( BufferGeometry.prototype );
+EdgesGeometry.prototype = Object.create(BufferGeometry.prototype);
 EdgesGeometry.prototype.constructor = EdgesGeometry;
-
 
 export { EdgesGeometry };

@@ -50,7 +50,7 @@ function Geometry() {
   this.groupsNeedUpdate = false;
 }
 
-// 可以几何模型也是EventDispatcher类的子类
+// 几何模型也是EventDispatcher类的子类
 Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
   constructor: Geometry,
 

@@ -4,118 +4,117 @@
  * @author hughes
  */
 
-import { Geometry } from '../core/Geometry.js';
-import { BufferGeometry } from '../core/BufferGeometry.js';
-import { Float32BufferAttribute } from '../core/BufferAttribute.js';
-import { Vector3 } from '../math/Vector3.js';
-import { Vector2 } from '../math/Vector2.js';
+import { Geometry } from "../core/Geometry.js";
+import { BufferGeometry } from "../core/BufferGeometry.js";
+import { Float32BufferAttribute } from "../core/BufferAttribute.js";
+import { Vector3 } from "../math/Vector3.js";
+import { Vector2 } from "../math/Vector2.js";
 
-// CircleGeometry
+/**
+ * CircleGeometry，平面圆弧。
+ * @param {*} radius 圆弧半径
+ * @param {*} segments 圆弧的弧线切割数
+ * @param {*} thetaStart 圆弧开始角度
+ * @param {*} thetaLength 圆弧弧度
+ */
 
-function CircleGeometry( radius, segments, thetaStart, thetaLength ) {
+function CircleGeometry(radius, segments, thetaStart, thetaLength) {
+  Geometry.call(this);
 
-	Geometry.call( this );
+  this.type = "CircleGeometry";
 
-	this.type = 'CircleGeometry';
+  this.parameters = {
+    radius: radius,
+    segments: segments,
+    thetaStart: thetaStart,
+    thetaLength: thetaLength
+  };
 
-	this.parameters = {
-		radius: radius,
-		segments: segments,
-		thetaStart: thetaStart,
-		thetaLength: thetaLength
-	};
-
-	this.fromBufferGeometry( new CircleBufferGeometry( radius, segments, thetaStart, thetaLength ) );
-	this.mergeVertices();
-
+  this.fromBufferGeometry(
+    new CircleBufferGeometry(radius, segments, thetaStart, thetaLength)
+  );
+  this.mergeVertices();
 }
 
-CircleGeometry.prototype = Object.create( Geometry.prototype );
+CircleGeometry.prototype = Object.create(Geometry.prototype);
 CircleGeometry.prototype.constructor = CircleGeometry;
 
 // CircleBufferGeometry
 
-function CircleBufferGeometry( radius, segments, thetaStart, thetaLength ) {
+function CircleBufferGeometry(radius, segments, thetaStart, thetaLength) {
+  BufferGeometry.call(this);
 
-	BufferGeometry.call( this );
+  this.type = "CircleBufferGeometry";
 
-	this.type = 'CircleBufferGeometry';
+  this.parameters = {
+    radius: radius,
+    segments: segments,
+    thetaStart: thetaStart,
+    thetaLength: thetaLength
+  };
 
-	this.parameters = {
-		radius: radius,
-		segments: segments,
-		thetaStart: thetaStart,
-		thetaLength: thetaLength
-	};
+  radius = radius || 1;
+  segments = segments !== undefined ? Math.max(3, segments) : 8;
 
-	radius = radius || 1;
-	segments = segments !== undefined ? Math.max( 3, segments ) : 8;
+  thetaStart = thetaStart !== undefined ? thetaStart : 0;
+  thetaLength = thetaLength !== undefined ? thetaLength : Math.PI * 2;
 
-	thetaStart = thetaStart !== undefined ? thetaStart : 0;
-	thetaLength = thetaLength !== undefined ? thetaLength : Math.PI * 2;
+  // buffers
 
-	// buffers
+  var indices = [];
+  var vertices = [];
+  var normals = [];
+  var uvs = [];
 
-	var indices = [];
-	var vertices = [];
-	var normals = [];
-	var uvs = [];
+  // helper variables
 
-	// helper variables
+  var i, s;
+  var vertex = new Vector3();
+  var uv = new Vector2();
 
-	var i, s;
-	var vertex = new Vector3();
-	var uv = new Vector2();
+  // center point
 
-	// center point
+  vertices.push(0, 0, 0);
+  normals.push(0, 0, 1);
+  uvs.push(0.5, 0.5);
 
-	vertices.push( 0, 0, 0 );
-	normals.push( 0, 0, 1 );
-	uvs.push( 0.5, 0.5 );
+  for (s = 0, i = 3; s <= segments; s++, i += 3) {
+    var segment = thetaStart + (s / segments) * thetaLength;
 
-	for ( s = 0, i = 3; s <= segments; s ++, i += 3 ) {
+    // vertex
 
-		var segment = thetaStart + s / segments * thetaLength;
+    vertex.x = radius * Math.cos(segment);
+    vertex.y = radius * Math.sin(segment);
 
-		// vertex
+    vertices.push(vertex.x, vertex.y, vertex.z);
 
-		vertex.x = radius * Math.cos( segment );
-		vertex.y = radius * Math.sin( segment );
+    // normal
 
-		vertices.push( vertex.x, vertex.y, vertex.z );
+    normals.push(0, 0, 1);
 
-		// normal
+    // uvs
 
-		normals.push( 0, 0, 1 );
+    uv.x = (vertices[i] / radius + 1) / 2;
+    uv.y = (vertices[i + 1] / radius + 1) / 2;
 
-		// uvs
+    uvs.push(uv.x, uv.y);
+  }
 
-		uv.x = ( vertices[ i ] / radius + 1 ) / 2;
-		uv.y = ( vertices[ i + 1 ] / radius + 1 ) / 2;
+  // indices
 
-		uvs.push( uv.x, uv.y );
+  for (i = 1; i <= segments; i++) {
+    indices.push(i, i + 1, 0);
+  }
 
-	}
+  // build geometry
 
-	// indices
-
-	for ( i = 1; i <= segments; i ++ ) {
-
-		indices.push( i, i + 1, 0 );
-
-	}
-
-	// build geometry
-
-	this.setIndex( indices );
-	this.addAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
-	this.addAttribute( 'normal', new Float32BufferAttribute( normals, 3 ) );
-	this.addAttribute( 'uv', new Float32BufferAttribute( uvs, 2 ) );
-
+  this.setIndex(indices);
+  this.addAttribute("position", new Float32BufferAttribute(vertices, 3));
+  this.addAttribute("normal", new Float32BufferAttribute(normals, 3));
+  this.addAttribute("uv", new Float32BufferAttribute(uvs, 2));
 }
 
-CircleBufferGeometry.prototype = Object.create( BufferGeometry.prototype );
+CircleBufferGeometry.prototype = Object.create(BufferGeometry.prototype);
 CircleBufferGeometry.prototype.constructor = CircleBufferGeometry;
-
 
 export { CircleGeometry, CircleBufferGeometry };
