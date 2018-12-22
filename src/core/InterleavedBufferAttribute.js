@@ -1,140 +1,103 @@
+//  数据存储结构。Interleaved交叉buffer；在WebGL中基于缓冲区的interleaved技术可以同时存储坐标和颜色的属性
+function InterleavedBufferAttribute(
+  interleavedBuffer,
+  itemSize,
+  offset,
+  normalized
+) {
+  this.data = interleavedBuffer;
+  this.itemSize = itemSize;
+  this.offset = offset;
 
-/**
- * @author benaadams / https://twitter.com/ben_a_adams
- */
-
-//  数据存储结构。Interleaved交叉buffer
-function InterleavedBufferAttribute( interleavedBuffer, itemSize, offset, normalized ) {
-
-	this.data = interleavedBuffer;
-	this.itemSize = itemSize;
-	this.offset = offset;
-
-	this.normalized = normalized === true;
-
+  this.normalized = normalized === true;
 }
 
-Object.defineProperties( InterleavedBufferAttribute.prototype, {
+Object.defineProperties(InterleavedBufferAttribute.prototype, {
+  count: {
+    get: function() {
+      return this.data.count;
+    }
+  },
 
-	count: {
+  array: {
+    get: function() {
+      return this.data.array;
+    }
+  }
+});
 
-		get: function () {
+Object.assign(InterleavedBufferAttribute.prototype, {
+  isInterleavedBufferAttribute: true,
 
-			return this.data.count;
+  setX: function(index, x) {
+    this.data.array[index * this.data.stride + this.offset] = x;
 
-		}
+    return this;
+  },
 
-	},
+  setY: function(index, y) {
+    this.data.array[index * this.data.stride + this.offset + 1] = y;
 
-	array: {
+    return this;
+  },
 
-		get: function () {
+  setZ: function(index, z) {
+    this.data.array[index * this.data.stride + this.offset + 2] = z;
 
-			return this.data.array;
+    return this;
+  },
 
-		}
+  setW: function(index, w) {
+    this.data.array[index * this.data.stride + this.offset + 3] = w;
 
-	}
+    return this;
+  },
 
-} );
+  getX: function(index) {
+    return this.data.array[index * this.data.stride + this.offset];
+  },
 
-Object.assign( InterleavedBufferAttribute.prototype, {
+  getY: function(index) {
+    return this.data.array[index * this.data.stride + this.offset + 1];
+  },
 
-	isInterleavedBufferAttribute: true,
+  getZ: function(index) {
+    return this.data.array[index * this.data.stride + this.offset + 2];
+  },
 
-	setX: function ( index, x ) {
+  getW: function(index) {
+    return this.data.array[index * this.data.stride + this.offset + 3];
+  },
 
-		this.data.array[ index * this.data.stride + this.offset ] = x;
+  setXY: function(index, x, y) {
+    index = index * this.data.stride + this.offset;
 
-		return this;
+    this.data.array[index + 0] = x;
+    this.data.array[index + 1] = y;
 
-	},
+    return this;
+  },
 
-	setY: function ( index, y ) {
+  setXYZ: function(index, x, y, z) {
+    index = index * this.data.stride + this.offset;
 
-		this.data.array[ index * this.data.stride + this.offset + 1 ] = y;
+    this.data.array[index + 0] = x;
+    this.data.array[index + 1] = y;
+    this.data.array[index + 2] = z;
 
-		return this;
+    return this;
+  },
 
-	},
+  setXYZW: function(index, x, y, z, w) {
+    index = index * this.data.stride + this.offset;
 
-	setZ: function ( index, z ) {
+    this.data.array[index + 0] = x;
+    this.data.array[index + 1] = y;
+    this.data.array[index + 2] = z;
+    this.data.array[index + 3] = w;
 
-		this.data.array[ index * this.data.stride + this.offset + 2 ] = z;
-
-		return this;
-
-	},
-
-	setW: function ( index, w ) {
-
-		this.data.array[ index * this.data.stride + this.offset + 3 ] = w;
-
-		return this;
-
-	},
-
-	getX: function ( index ) {
-
-		return this.data.array[ index * this.data.stride + this.offset ];
-
-	},
-
-	getY: function ( index ) {
-
-		return this.data.array[ index * this.data.stride + this.offset + 1 ];
-
-	},
-
-	getZ: function ( index ) {
-
-		return this.data.array[ index * this.data.stride + this.offset + 2 ];
-
-	},
-
-	getW: function ( index ) {
-
-		return this.data.array[ index * this.data.stride + this.offset + 3 ];
-
-	},
-
-	setXY: function ( index, x, y ) {
-
-		index = index * this.data.stride + this.offset;
-
-		this.data.array[ index + 0 ] = x;
-		this.data.array[ index + 1 ] = y;
-
-		return this;
-
-	},
-
-	setXYZ: function ( index, x, y, z ) {
-
-		index = index * this.data.stride + this.offset;
-
-		this.data.array[ index + 0 ] = x;
-		this.data.array[ index + 1 ] = y;
-		this.data.array[ index + 2 ] = z;
-
-		return this;
-
-	},
-
-	setXYZW: function ( index, x, y, z, w ) {
-
-		index = index * this.data.stride + this.offset;
-
-		this.data.array[ index + 0 ] = x;
-		this.data.array[ index + 1 ] = y;
-		this.data.array[ index + 2 ] = z;
-		this.data.array[ index + 3 ] = w;
-
-		return this;
-
-	}
-
-} );
-
+    return this;
+  }
+});
 
 export { InterleavedBufferAttribute };

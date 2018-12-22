@@ -7,14 +7,7 @@ import { Layers } from "./Layers.js";
 import { Matrix3 } from "../math/Matrix3.js";
 import { _Math } from "../math/Math.js";
 
-/**
- * @author mrdoob / http://mrdoob.com/
- * @author mikael emtinger / http://gomo.se/
- * @author alteredq / http://alteredqualia.com/
- * @author WestLangley / http://github.com/WestLangley
- * @author elephantatwork / www.elephantatwork.ch
- */
-
+// 3D场景中所有存放在scene容器中的模型是Object3D衍生的类对象
 var object3DId = 0;
 
 function Object3D() {
@@ -27,12 +20,16 @@ function Object3D() {
   this.name = "";
   this.type = "Object3D";
 
+  // 具有嵌套结构的对象模型结构
   this.parent = null;
   this.children = [];
 
+  // 当在3D场景中创建新模型时，模型Y轴的朝向
   this.up = Object3D.DefaultUp.clone();
 
+  // 模型的初始位置，一般在世界坐标系的原点
   var position = new Vector3();
+
   // 物体具有欧拉角属性和四元数属性。而且这两者等价
   var rotation = new Euler();
   var quaternion = new Quaternion();
@@ -50,6 +47,7 @@ function Object3D() {
   }
 
   // 下面onChange监听事件通过Object.defineProperties的set来拦截
+  // 即只要模型的欧拉角或者四元数发生变化，则触发回调
   rotation.onChange(onRotationChange);
   quaternion.onChange(onQuaternionChange);
 
@@ -71,25 +69,28 @@ function Object3D() {
       value: scale
     },
 
-    // 物体模型在相机视界中的变换矩阵
+    // 从模型空间到相机空间的变换矩阵
     modelViewMatrix: {
       value: new Matrix4()
     },
 
-    //
+    //正交矩阵
     normalMatrix: {
       value: new Matrix3()
     }
   });
 
+  // 模型变换矩阵
   this.matrix = new Matrix4();
 
-  // 物体在世界坐标系中的变换矩阵
+  // 模型从局部坐标系变换到世界坐标系的矩阵形式
   this.matrixWorld = new Matrix4();
 
+  // 当模型发生变换操作是否需要修改变换矩阵
   this.matrixAutoUpdate = Object3D.DefaultMatrixAutoUpdate;
   this.matrixWorldNeedsUpdate = false;
 
+  // 为了提高渲染性能，模型分层可以关注发生变化的部分
   this.layers = new Layers();
   this.visible = true;
 
@@ -97,18 +98,20 @@ function Object3D() {
   this.castShadow = false;
   this.receiveShadow = false;
 
-  // 物体是否根据出现在相机的frustum区域进行剔除
+  // 物体是否根据出现在相机的frustum区域进行剔除，可以提升性能
   this.frustumCulled = true;
   this.renderOrder = 0;
 
   this.userData = {};
 }
+
 // 物体默认的up方向为Y轴
 Object3D.DefaultUp = new Vector3(0, 1, 0);
 
-// 物体默认自动位置矩阵更新
+// 物体发生变换是否触发变换矩阵的更新操作
 Object3D.DefaultMatrixAutoUpdate = true;
 
+// 注意，Object.create函数实现原型链继承。因此模型对象可以分发事件
 Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
   constructor: Object3D,
 
@@ -118,12 +121,14 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
   onBeforeRender: function() {},
   onAfterRender: function() {},
 
+  // 模型应用变换矩阵进行变换操作
   applyMatrix: function(matrix) {
     this.matrix.multiplyMatrices(matrix, this.matrix);
 
     this.matrix.decompose(this.position, this.quaternion, this.scale);
   },
 
+  // 下面模型的四元素/欧拉角发生变化，会触发相应的回调
   applyQuaternion: function(q) {
     this.quaternion.premultiply(q);
 
@@ -131,8 +136,6 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
   },
 
   setRotationFromAxisAngle: function(axis, angle) {
-    // assumes axis is normalized
-
     this.quaternion.setFromAxisAngle(axis, angle);
   },
 
@@ -140,9 +143,8 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     this.quaternion.setFromEuler(euler, true);
   },
 
+  // 截图矩阵的左上角3*3子矩阵，作为纯粹的旋转矩阵
   setRotationFromMatrix: function(m) {
-    // assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
-
     this.quaternion.setFromRotationMatrix(m);
   },
 
@@ -152,10 +154,8 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     this.quaternion.copy(q);
   },
 
+  // 基于模型局部坐标系中特定轴的旋转操作，注意旋转轴不一定就是坐标轴
   rotateOnAxis: (function() {
-    // rotate object on axis in object space
-    // axis is assumed to be normalized
-
     var q1 = new Quaternion();
 
     return function rotateOnAxis(axis, angle) {
@@ -167,11 +167,8 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     };
   })(),
 
+  // 基于模型世界坐标系中特定轴的旋转操作，注意旋转轴不一定就是坐标轴
   rotateOnWorldAxis: (function() {
-    // rotate object on axis in world space
-    // axis is assumed to be normalized
-    // method assumes no rotated parent
-
     var q1 = new Quaternion();
 
     return function rotateOnWorldAxis(axis, angle) {
@@ -183,6 +180,7 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     };
   })(),
 
+  // 基于模型局部坐标系的X轴旋转
   rotateX: (function() {
     var v1 = new Vector3(1, 0, 0);
 
@@ -207,10 +205,8 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     };
   })(),
 
+  // 基于模型局部坐标系特定轴的位移，注意特定轴不一定是坐标轴
   translateOnAxis: (function() {
-    // translate object by distance along axis in object space
-    // axis is assumed to be normalized
-
     var v1 = new Vector3();
 
     return function translateOnAxis(axis, distance) {
@@ -246,7 +242,7 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     };
   })(),
 
-  // 从局部坐标系到世界坐标系转换
+  // 从局部坐标系到世界坐标系转换，实现方式就是模型经过世界矩阵变换
   localToWorld: function(vector) {
     return vector.applyMatrix4(this.matrixWorld);
   },
@@ -259,10 +255,8 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     };
   })(),
 
-  // 物体的lookAt
+  // 物体的“lookAt”
   lookAt: (function() {
-    // This method does not support objects with rotated and/or translated parent(s)
-
     var m1 = new Matrix4();
     var vector = new Vector3();
 
@@ -273,6 +267,7 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
         vector.set(x, y, z);
       }
 
+      // 如果模型是相机，则lookAt修改变换矩阵；如果模型非相机，则相对于相机修改变换矩阵
       if (this.isCamera) {
         m1.lookAt(this.position, vector, this.up);
       } else {
@@ -283,7 +278,7 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     };
   })(),
 
-  // 添加子元素
+  // 添加子模型对象
   add: function(object) {
     if (arguments.length > 1) {
       for (var i = 0; i < arguments.length; i++) {
@@ -307,6 +302,8 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
       }
 
       object.parent = this;
+
+      // 当添加模型时，触发自定义事件
       object.dispatchEvent({ type: "added" });
 
       this.children.push(object);
@@ -334,6 +331,7 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     if (index !== -1) {
       object.parent = null;
 
+      // 当删除模型，则触发自定义事件
       object.dispatchEvent({ type: "removed" });
 
       this.children.splice(index, 1);
@@ -342,6 +340,7 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     return this;
   },
 
+  // 在3D场景中，所有模型构成一棵树。其中根节点为scene容器，为了帮助开发者快速找到模型树中特定模型，则定义了下列方法
   getObjectById: function(id) {
     return this.getObjectByProperty("id", id);
   },
@@ -350,6 +349,7 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     return this.getObjectByProperty("name", name);
   },
 
+  // 递归搜索
   getObjectByProperty: function(name, value) {
     if (this[name] === value) return this;
 
@@ -434,8 +434,11 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     };
   })(),
 
+  //用于模型拾取/碰撞检测的方法，采样类似射线投射技术
+  // 在具体的Object类中实现raycast方法，类似C++中的函数重载
   raycast: function() {},
 
+  // 递归遍历模型树，对每个节点进行回调处理
   traverse: function(callback) {
     callback(this);
 
@@ -446,6 +449,7 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     }
   },
 
+  // 变量场景中所有可见的模型，模型不可见表示未被渲染
   traverseVisible: function(callback) {
     if (this.visible === false) return;
 
@@ -458,6 +462,7 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     }
   },
 
+  // 得到当前模型所有祖先模型
   traverseAncestors: function(callback) {
     var parent = this.parent;
 
@@ -468,6 +473,7 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     }
   },
 
+  // 注意矩阵的合成分量包括位置变换、四元数旋转变换和缩放变换，最终形成的4*4矩阵就是一个完整的3D变换矩阵
   updateMatrix: function() {
     this.matrix.compose(
       this.position,
@@ -636,8 +642,11 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     return new this.constructor().copy(this, recursive);
   },
 
+  //从给定的源模型对象进行拷贝，默认会递归模型及其包含的后代模型
   copy: function(source, recursive) {
-    if (recursive === undefined) recursive = true;
+    if (recursive === undefined) {
+      recursive = true;
+    }
 
     this.name = source.name;
 
@@ -647,9 +656,12 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     this.quaternion.copy(source.quaternion);
     this.scale.copy(source.scale);
 
+    // matrix表示模型相对于局部坐标系的变换矩阵；
+    // matrixWorld表示模型在世界坐标系中的变换矩阵
     this.matrix.copy(source.matrix);
     this.matrixWorld.copy(source.matrixWorld);
 
+    // 当模型变换操作，是否自动触发对应的变换矩阵更新逻辑
     this.matrixAutoUpdate = source.matrixAutoUpdate;
     this.matrixWorldNeedsUpdate = source.matrixWorldNeedsUpdate;
 

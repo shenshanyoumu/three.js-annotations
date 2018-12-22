@@ -1,40 +1,32 @@
-import { BufferGeometry } from './BufferGeometry.js';
+import { BufferGeometry } from "./BufferGeometry.js";
 
-/**
- * @author benaadams / https://twitter.com/ben_a_adams
- */
-
+//实例化的具有缓冲结构的几何模型
 function InstancedBufferGeometry() {
+  BufferGeometry.call(this);
 
-	BufferGeometry.call( this );
-
-	this.type = 'InstancedBufferGeometry';
-	this.maxInstancedCount = undefined;
-
+  this.type = "InstancedBufferGeometry";
+  this.maxInstancedCount = undefined;
 }
 
-InstancedBufferGeometry.prototype = Object.assign( Object.create( BufferGeometry.prototype ), {
+InstancedBufferGeometry.prototype = Object.assign(
+  Object.create(BufferGeometry.prototype),
+  {
+    constructor: InstancedBufferGeometry,
 
-	constructor: InstancedBufferGeometry,
+    isInstancedBufferGeometry: true,
 
-	isInstancedBufferGeometry: true,
+    copy: function(source) {
+      BufferGeometry.prototype.copy.call(this, source);
 
-	copy: function ( source ) {
+      this.maxInstancedCount = source.maxInstancedCount;
 
-		BufferGeometry.prototype.copy.call( this, source );
+      return this;
+    },
 
-		this.maxInstancedCount = source.maxInstancedCount;
-
-		return this;
-
-	},
-
-	clone: function () {
-
-		return new this.constructor().copy( this );
-
-	}
-
-} );
+    clone: function() {
+      return new this.constructor().copy(this);
+    }
+  }
+);
 
 export { InstancedBufferGeometry };

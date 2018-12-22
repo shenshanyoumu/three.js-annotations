@@ -1,34 +1,27 @@
-import { InterleavedBuffer } from './InterleavedBuffer.js';
+import { InterleavedBuffer } from "./InterleavedBuffer.js";
 
-/**
- * @author benaadams / https://twitter.com/ben_a_adams
- */
+// 实例化的交叉存储buffer
+function InstancedInterleavedBuffer(array, stride, meshPerAttribute) {
+  InterleavedBuffer.call(this, array, stride);
 
-//  对象的interleave buffer
-function InstancedInterleavedBuffer( array, stride, meshPerAttribute ) {
-
-	InterleavedBuffer.call( this, array, stride );
-
-	this.meshPerAttribute = meshPerAttribute || 1;
-
+  this.meshPerAttribute = meshPerAttribute || 1;
 }
 
-InstancedInterleavedBuffer.prototype = Object.assign( Object.create( InterleavedBuffer.prototype ), {
+InstancedInterleavedBuffer.prototype = Object.assign(
+  Object.create(InterleavedBuffer.prototype),
+  {
+    constructor: InstancedInterleavedBuffer,
 
-	constructor: InstancedInterleavedBuffer,
+    isInstancedInterleavedBuffer: true,
 
-	isInstancedInterleavedBuffer: true,
+    copy: function(source) {
+      InterleavedBuffer.prototype.copy.call(this, source);
 
-	copy: function ( source ) {
+      this.meshPerAttribute = source.meshPerAttribute;
 
-		InterleavedBuffer.prototype.copy.call( this, source );
-
-		this.meshPerAttribute = source.meshPerAttribute;
-
-		return this;
-
-	}
-
-} );
+      return this;
+    }
+  }
+);
 
 export { InstancedInterleavedBuffer };

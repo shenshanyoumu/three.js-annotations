@@ -1,74 +1,59 @@
-/**
- * @author alteredq / http://alteredqualia.com/
- */
+//  时钟对象，记录时间的开始与流逝;在渲染性能分析和动画中使用
+function Clock(autoStart) {
+  this.autoStart = autoStart !== undefined ? autoStart : true;
 
-//  时钟对象，记录时间的开始与流逝
-function Clock( autoStart ) {
+  this.startTime = 0;
+  this.oldTime = 0;
+  this.elapsedTime = 0;
 
-	this.autoStart = ( autoStart !== undefined ) ? autoStart : true;
-
-	this.startTime = 0;
-	this.oldTime = 0;
-	this.elapsedTime = 0;
-
-	this.running = false;
-
+  this.running = false;
 }
 
-Object.assign( Clock.prototype, {
+Object.assign(Clock.prototype, {
+  start: function() {
+    this.startTime = (typeof performance === "undefined"
+      ? Date
+      : performance
+    ).now(); // see #10732
 
-	start: function () {
+    this.oldTime = this.startTime;
+    this.elapsedTime = 0;
+    this.running = true;
+  },
 
-		this.startTime = ( typeof performance === 'undefined' ? Date : performance ).now(); // see #10732
+  stop: function() {
+    this.getElapsedTime();
+    this.running = false;
+    this.autoStart = false;
+  },
 
-		this.oldTime = this.startTime;
-		this.elapsedTime = 0;
-		this.running = true;
+  getElapsedTime: function() {
+    this.getDelta();
+    return this.elapsedTime;
+  },
 
-	},
+  getDelta: function() {
+    var diff = 0;
 
-	stop: function () {
+    if (this.autoStart && !this.running) {
+      this.start();
+      return 0;
+    }
 
-		this.getElapsedTime();
-		this.running = false;
-		this.autoStart = false;
+    if (this.running) {
+      var newTime = (typeof performance === "undefined"
+        ? Date
+        : performance
+      ).now();
 
-	},
+      diff = (newTime - this.oldTime) / 1000;
+      this.oldTime = newTime;
 
-	getElapsedTime: function () {
+      this.elapsedTime += diff;
+    }
 
-		this.getDelta();
-		return this.elapsedTime;
-
-	},
-
-	getDelta: function () {
-
-		var diff = 0;
-
-		if ( this.autoStart && ! this.running ) {
-
-			this.start();
-			return 0;
-
-		}
-
-		if ( this.running ) {
-
-			var newTime = ( typeof performance === 'undefined' ? Date : performance ).now();
-
-			diff = ( newTime - this.oldTime ) / 1000;
-			this.oldTime = newTime;
-
-			this.elapsedTime += diff;
-
-		}
-
-		return diff;
-
-	}
-
-} );
-
+    return diff;
+  }
+});
 
 export { Clock };
