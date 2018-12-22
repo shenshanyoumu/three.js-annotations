@@ -3,201 +3,292 @@
  * @author Mugen87 / https://github.com/Mugen87
  */
 
-import { Geometry } from '../core/Geometry.js';
-import { BufferGeometry } from '../core/BufferGeometry.js';
-import { Float32BufferAttribute } from '../core/BufferAttribute.js';
-import { Vector3 } from '../math/Vector3.js';
+import { Geometry } from "../core/Geometry.js";
+import { BufferGeometry } from "../core/BufferGeometry.js";
+import { Float32BufferAttribute } from "../core/BufferAttribute.js";
+import { Vector3 } from "../math/Vector3.js";
 
-// BoxGeometry
+// 立方体模型，其中参数widthSegments默认为1，表示对立方体的width进行切分
+function BoxGeometry(
+  width,
+  height,
+  depth,
+  widthSegments,
+  heightSegments,
+  depthSegments
+) {
+  Geometry.call(this);
 
-function BoxGeometry( width, height, depth, widthSegments, heightSegments, depthSegments ) {
+  this.type = "BoxGeometry";
 
-	Geometry.call( this );
+  this.parameters = {
+    width: width,
+    height: height,
+    depth: depth,
+    widthSegments: widthSegments,
+    heightSegments: heightSegments,
+    depthSegments: depthSegments
+  };
 
-	this.type = 'BoxGeometry';
-
-	this.parameters = {
-		width: width,
-		height: height,
-		depth: depth,
-		widthSegments: widthSegments,
-		heightSegments: heightSegments,
-		depthSegments: depthSegments
-	};
-
-	this.fromBufferGeometry( new BoxBufferGeometry( width, height, depth, widthSegments, heightSegments, depthSegments ) );
-	this.mergeVertices();
-
+  this.fromBufferGeometry(
+    new BoxBufferGeometry(
+      width,
+      height,
+      depth,
+      widthSegments,
+      heightSegments,
+      depthSegments
+    )
+  );
+  this.mergeVertices();
 }
 
-BoxGeometry.prototype = Object.create( Geometry.prototype );
+// 继承自Geometry类
+BoxGeometry.prototype = Object.create(Geometry.prototype);
 BoxGeometry.prototype.constructor = BoxGeometry;
 
 // BoxBufferGeometry
 
-function BoxBufferGeometry( width, height, depth, widthSegments, heightSegments, depthSegments ) {
+function BoxBufferGeometry(
+  width,
+  height,
+  depth,
+  widthSegments,
+  heightSegments,
+  depthSegments
+) {
+  BufferGeometry.call(this);
 
-	BufferGeometry.call( this );
+  this.type = "BoxBufferGeometry";
 
-	this.type = 'BoxBufferGeometry';
+  this.parameters = {
+    width: width,
+    height: height,
+    depth: depth,
+    widthSegments: widthSegments,
+    heightSegments: heightSegments,
+    depthSegments: depthSegments
+  };
 
-	this.parameters = {
-		width: width,
-		height: height,
-		depth: depth,
-		widthSegments: widthSegments,
-		heightSegments: heightSegments,
-		depthSegments: depthSegments
-	};
+  var scope = this;
 
-	var scope = this;
+  width = width || 1;
+  height = height || 1;
+  depth = depth || 1;
 
-	width = width || 1;
-	height = height || 1;
-	depth = depth || 1;
+  // segments
 
-	// segments
+  widthSegments = Math.floor(widthSegments) || 1;
+  heightSegments = Math.floor(heightSegments) || 1;
+  depthSegments = Math.floor(depthSegments) || 1;
 
-	widthSegments = Math.floor( widthSegments ) || 1;
-	heightSegments = Math.floor( heightSegments ) || 1;
-	depthSegments = Math.floor( depthSegments ) || 1;
+  // 立方体模型的要素包括顶点集、每个平面的法向量、表面贴图的UV坐标，以及从顶点集中构建平面时每个点的索引
+  var indices = [];
+  var vertices = [];
+  var normals = [];
+  var uvs = [];
 
-	// buffers
+  // helper variables
 
-	var indices = [];
-	var vertices = [];
-	var normals = [];
-	var uvs = [];
+  var numberOfVertices = 0;
+  var groupStart = 0;
 
-	// helper variables
+  // build each side of the box geometry
 
-	var numberOfVertices = 0;
-	var groupStart = 0;
+  buildPlane(
+    "z",
+    "y",
+    "x",
+    -1,
+    -1,
+    depth,
+    height,
+    width,
+    depthSegments,
+    heightSegments,
+    0
+  ); // px
+  buildPlane(
+    "z",
+    "y",
+    "x",
+    1,
+    -1,
+    depth,
+    height,
+    -width,
+    depthSegments,
+    heightSegments,
+    1
+  ); // nx
+  buildPlane(
+    "x",
+    "z",
+    "y",
+    1,
+    1,
+    width,
+    depth,
+    height,
+    widthSegments,
+    depthSegments,
+    2
+  ); // py
+  buildPlane(
+    "x",
+    "z",
+    "y",
+    1,
+    -1,
+    width,
+    depth,
+    -height,
+    widthSegments,
+    depthSegments,
+    3
+  ); // ny
+  buildPlane(
+    "x",
+    "y",
+    "z",
+    1,
+    -1,
+    width,
+    height,
+    depth,
+    widthSegments,
+    heightSegments,
+    4
+  ); // pz
+  buildPlane(
+    "x",
+    "y",
+    "z",
+    -1,
+    -1,
+    width,
+    height,
+    -depth,
+    widthSegments,
+    heightSegments,
+    5
+  ); // nz
 
-	// build each side of the box geometry
+  // build geometry
 
-	buildPlane( 'z', 'y', 'x', - 1, - 1, depth, height, width, depthSegments, heightSegments, 0 ); // px
-	buildPlane( 'z', 'y', 'x', 1, - 1, depth, height, - width, depthSegments, heightSegments, 1 ); // nx
-	buildPlane( 'x', 'z', 'y', 1, 1, width, depth, height, widthSegments, depthSegments, 2 ); // py
-	buildPlane( 'x', 'z', 'y', 1, - 1, width, depth, - height, widthSegments, depthSegments, 3 ); // ny
-	buildPlane( 'x', 'y', 'z', 1, - 1, width, height, depth, widthSegments, heightSegments, 4 ); // pz
-	buildPlane( 'x', 'y', 'z', - 1, - 1, width, height, - depth, widthSegments, heightSegments, 5 ); // nz
+  this.setIndex(indices);
+  this.addAttribute("position", new Float32BufferAttribute(vertices, 3));
+  this.addAttribute("normal", new Float32BufferAttribute(normals, 3));
+  this.addAttribute("uv", new Float32BufferAttribute(uvs, 2));
 
-	// build geometry
+  function buildPlane(
+    u,
+    v,
+    w,
+    udir,
+    vdir,
+    width,
+    height,
+    depth,
+    gridX,
+    gridY,
+    materialIndex
+  ) {
+    var segmentWidth = width / gridX;
+    var segmentHeight = height / gridY;
 
-	this.setIndex( indices );
-	this.addAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
-	this.addAttribute( 'normal', new Float32BufferAttribute( normals, 3 ) );
-	this.addAttribute( 'uv', new Float32BufferAttribute( uvs, 2 ) );
+    var widthHalf = width / 2;
+    var heightHalf = height / 2;
+    var depthHalf = depth / 2;
 
-	function buildPlane( u, v, w, udir, vdir, width, height, depth, gridX, gridY, materialIndex ) {
+    var gridX1 = gridX + 1;
+    var gridY1 = gridY + 1;
 
-		var segmentWidth = width / gridX;
-		var segmentHeight = height / gridY;
+    var vertexCounter = 0;
+    var groupCount = 0;
 
-		var widthHalf = width / 2;
-		var heightHalf = height / 2;
-		var depthHalf = depth / 2;
+    var ix, iy;
 
-		var gridX1 = gridX + 1;
-		var gridY1 = gridY + 1;
+    var vector = new Vector3();
 
-		var vertexCounter = 0;
-		var groupCount = 0;
+    // generate vertices, normals and uvs
 
-		var ix, iy;
+    for (iy = 0; iy < gridY1; iy++) {
+      var y = iy * segmentHeight - heightHalf;
 
-		var vector = new Vector3();
+      for (ix = 0; ix < gridX1; ix++) {
+        var x = ix * segmentWidth - widthHalf;
 
-		// generate vertices, normals and uvs
+        // set values to correct vector component
 
-		for ( iy = 0; iy < gridY1; iy ++ ) {
+        vector[u] = x * udir;
+        vector[v] = y * vdir;
+        vector[w] = depthHalf;
 
-			var y = iy * segmentHeight - heightHalf;
+        // now apply vector to vertex buffer
 
-			for ( ix = 0; ix < gridX1; ix ++ ) {
+        vertices.push(vector.x, vector.y, vector.z);
 
-				var x = ix * segmentWidth - widthHalf;
+        // set values to correct vector component
 
-				// set values to correct vector component
+        vector[u] = 0;
+        vector[v] = 0;
+        vector[w] = depth > 0 ? 1 : -1;
 
-				vector[ u ] = x * udir;
-				vector[ v ] = y * vdir;
-				vector[ w ] = depthHalf;
+        // now apply vector to normal buffer
 
-				// now apply vector to vertex buffer
+        normals.push(vector.x, vector.y, vector.z);
 
-				vertices.push( vector.x, vector.y, vector.z );
+        // uvs
 
-				// set values to correct vector component
+        uvs.push(ix / gridX);
+        uvs.push(1 - iy / gridY);
 
-				vector[ u ] = 0;
-				vector[ v ] = 0;
-				vector[ w ] = depth > 0 ? 1 : - 1;
+        // counters
 
-				// now apply vector to normal buffer
+        vertexCounter += 1;
+      }
+    }
 
-				normals.push( vector.x, vector.y, vector.z );
+    // indices
 
-				// uvs
+    // 1. you need three indices to draw a single face
+    // 2. a single segment consists of two faces
+    // 3. so we need to generate six (2*3) indices per segment
 
-				uvs.push( ix / gridX );
-				uvs.push( 1 - ( iy / gridY ) );
+    for (iy = 0; iy < gridY; iy++) {
+      for (ix = 0; ix < gridX; ix++) {
+        var a = numberOfVertices + ix + gridX1 * iy;
+        var b = numberOfVertices + ix + gridX1 * (iy + 1);
+        var c = numberOfVertices + (ix + 1) + gridX1 * (iy + 1);
+        var d = numberOfVertices + (ix + 1) + gridX1 * iy;
 
-				// counters
+        // faces
 
-				vertexCounter += 1;
+        indices.push(a, b, d);
+        indices.push(b, c, d);
 
-			}
+        // increase counter
 
-		}
+        groupCount += 6;
+      }
+    }
 
-		// indices
+    // add a group to the geometry. this will ensure multi material support
 
-		// 1. you need three indices to draw a single face
-		// 2. a single segment consists of two faces
-		// 3. so we need to generate six (2*3) indices per segment
+    scope.addGroup(groupStart, groupCount, materialIndex);
 
-		for ( iy = 0; iy < gridY; iy ++ ) {
+    // calculate new start value for groups
 
-			for ( ix = 0; ix < gridX; ix ++ ) {
+    groupStart += groupCount;
 
-				var a = numberOfVertices + ix + gridX1 * iy;
-				var b = numberOfVertices + ix + gridX1 * ( iy + 1 );
-				var c = numberOfVertices + ( ix + 1 ) + gridX1 * ( iy + 1 );
-				var d = numberOfVertices + ( ix + 1 ) + gridX1 * iy;
+    // update total number of vertices
 
-				// faces
-
-				indices.push( a, b, d );
-				indices.push( b, c, d );
-
-				// increase counter
-
-				groupCount += 6;
-
-			}
-
-		}
-
-		// add a group to the geometry. this will ensure multi material support
-
-		scope.addGroup( groupStart, groupCount, materialIndex );
-
-		// calculate new start value for groups
-
-		groupStart += groupCount;
-
-		// update total number of vertices
-
-		numberOfVertices += vertexCounter;
-
-	}
-
+    numberOfVertices += vertexCounter;
+  }
 }
 
-BoxBufferGeometry.prototype = Object.create( BufferGeometry.prototype );
+BoxBufferGeometry.prototype = Object.create(BufferGeometry.prototype);
 BoxBufferGeometry.prototype.constructor = BoxBufferGeometry;
-
 
 export { BoxGeometry, BoxBufferGeometry };

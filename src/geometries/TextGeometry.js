@@ -17,65 +17,68 @@
  * }
  */
 
-import { Geometry } from '../core/Geometry.js';
-import { ExtrudeBufferGeometry } from './ExtrudeGeometry.js';
+import { Geometry } from "../core/Geometry.js";
+import { ExtrudeBufferGeometry } from "./ExtrudeGeometry.js";
 
 // TextGeometry
+/**
+ * 文字形态的几何体
+ * @param {*} text 文字字符串
+ * @param {*} parameters 控制形态的参数
+ */
+function TextGeometry(text, parameters) {
+  Geometry.call(this);
 
-function TextGeometry( text, parameters ) {
+  this.type = "TextGeometry";
 
-	Geometry.call( this );
+  this.parameters = {
+    text: text,
+    parameters: parameters
+  };
 
-	this.type = 'TextGeometry';
-
-	this.parameters = {
-		text: text,
-		parameters: parameters
-	};
-
-	this.fromBufferGeometry( new TextBufferGeometry( text, parameters ) );
-	this.mergeVertices();
-
+  this.fromBufferGeometry(new TextBufferGeometry(text, parameters));
+  this.mergeVertices();
 }
 
-TextGeometry.prototype = Object.create( Geometry.prototype );
+TextGeometry.prototype = Object.create(Geometry.prototype);
 TextGeometry.prototype.constructor = TextGeometry;
 
 // TextBufferGeometry
 
-function TextBufferGeometry( text, parameters ) {
+function TextBufferGeometry(text, parameters) {
+  parameters = parameters || {};
 
-	parameters = parameters || {};
+  var font = parameters.font;
 
-	var font = parameters.font;
+  if (!(font && font.isFont)) {
+    console.error(
+      "THREE.TextGeometry: font parameter is not an instance of THREE.Font."
+    );
+    return new Geometry();
+  }
 
-	if ( ! ( font && font.isFont ) ) {
+  var shapes = font.generateShapes(
+    text,
+    parameters.size,
+    parameters.curveSegments
+  );
 
-		console.error( 'THREE.TextGeometry: font parameter is not an instance of THREE.Font.' );
-		return new Geometry();
+  // translate parameters to ExtrudeGeometry API
 
-	}
+  parameters.amount = parameters.height !== undefined ? parameters.height : 50;
 
-	var shapes = font.generateShapes( text, parameters.size, parameters.curveSegments );
+  // defaults
 
-	// translate parameters to ExtrudeGeometry API
+  if (parameters.bevelThickness === undefined) parameters.bevelThickness = 10;
+  if (parameters.bevelSize === undefined) parameters.bevelSize = 8;
+  if (parameters.bevelEnabled === undefined) parameters.bevelEnabled = false;
 
-	parameters.amount = parameters.height !== undefined ? parameters.height : 50;
+  ExtrudeBufferGeometry.call(this, shapes, parameters);
 
-	// defaults
-
-	if ( parameters.bevelThickness === undefined ) parameters.bevelThickness = 10;
-	if ( parameters.bevelSize === undefined ) parameters.bevelSize = 8;
-	if ( parameters.bevelEnabled === undefined ) parameters.bevelEnabled = false;
-
-	ExtrudeBufferGeometry.call( this, shapes, parameters );
-
-	this.type = 'TextBufferGeometry';
-
+  this.type = "TextBufferGeometry";
 }
 
-TextBufferGeometry.prototype = Object.create( ExtrudeBufferGeometry.prototype );
+TextBufferGeometry.prototype = Object.create(ExtrudeBufferGeometry.prototype);
 TextBufferGeometry.prototype.constructor = TextBufferGeometry;
-
 
 export { TextGeometry, TextBufferGeometry };

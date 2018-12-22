@@ -5,183 +5,172 @@
  * @author Mugen87 / https://github.com/Mugen87
  */
 
-import { Geometry } from '../core/Geometry.js';
-import { Float32BufferAttribute } from '../core/BufferAttribute.js';
-import { BufferGeometry } from '../core/BufferGeometry.js';
-import { Vector3 } from '../math/Vector3.js';
-import { Vector2 } from '../math/Vector2.js';
-import { _Math } from '../math/Math.js';
+import { Geometry } from "../core/Geometry.js";
+import { Float32BufferAttribute } from "../core/BufferAttribute.js";
+import { BufferGeometry } from "../core/BufferGeometry.js";
+import { Vector3 } from "../math/Vector3.js";
+import { Vector2 } from "../math/Vector2.js";
+import { _Math } from "../math/Math.js";
 
 // LatheGeometry
+/**
+ * 扫描体 ？？
+ * @param {*} points
+ * @param {*} segments
+ * @param {*} phiStart
+ * @param {*} phiLength
+ */
+function LatheGeometry(points, segments, phiStart, phiLength) {
+  Geometry.call(this);
 
-function LatheGeometry( points, segments, phiStart, phiLength ) {
+  this.type = "LatheGeometry";
 
-	Geometry.call( this );
+  this.parameters = {
+    points: points,
+    segments: segments,
+    phiStart: phiStart,
+    phiLength: phiLength
+  };
 
-	this.type = 'LatheGeometry';
-
-	this.parameters = {
-		points: points,
-		segments: segments,
-		phiStart: phiStart,
-		phiLength: phiLength
-	};
-
-	this.fromBufferGeometry( new LatheBufferGeometry( points, segments, phiStart, phiLength ) );
-	this.mergeVertices();
-
+  this.fromBufferGeometry(
+    new LatheBufferGeometry(points, segments, phiStart, phiLength)
+  );
+  this.mergeVertices();
 }
 
-LatheGeometry.prototype = Object.create( Geometry.prototype );
+LatheGeometry.prototype = Object.create(Geometry.prototype);
 LatheGeometry.prototype.constructor = LatheGeometry;
 
 // LatheBufferGeometry
 
-function LatheBufferGeometry( points, segments, phiStart, phiLength ) {
+function LatheBufferGeometry(points, segments, phiStart, phiLength) {
+  BufferGeometry.call(this);
 
-	BufferGeometry.call( this );
+  this.type = "LatheBufferGeometry";
 
-	this.type = 'LatheBufferGeometry';
+  this.parameters = {
+    points: points,
+    segments: segments,
+    phiStart: phiStart,
+    phiLength: phiLength
+  };
 
-	this.parameters = {
-		points: points,
-		segments: segments,
-		phiStart: phiStart,
-		phiLength: phiLength
-	};
+  segments = Math.floor(segments) || 12;
+  phiStart = phiStart || 0;
+  phiLength = phiLength || Math.PI * 2;
 
-	segments = Math.floor( segments ) || 12;
-	phiStart = phiStart || 0;
-	phiLength = phiLength || Math.PI * 2;
+  // clamp phiLength so it's in range of [ 0, 2PI ]
 
-	// clamp phiLength so it's in range of [ 0, 2PI ]
+  phiLength = _Math.clamp(phiLength, 0, Math.PI * 2);
 
-	phiLength = _Math.clamp( phiLength, 0, Math.PI * 2 );
+  // buffers
 
+  var indices = [];
+  var vertices = [];
+  var uvs = [];
 
-	// buffers
+  // helper variables
 
-	var indices = [];
-	var vertices = [];
-	var uvs = [];
+  var base;
+  var inverseSegments = 1.0 / segments;
+  var vertex = new Vector3();
+  var uv = new Vector2();
+  var i, j;
 
-	// helper variables
+  // generate vertices and uvs
 
-	var base;
-	var inverseSegments = 1.0 / segments;
-	var vertex = new Vector3();
-	var uv = new Vector2();
-	var i, j;
+  for (i = 0; i <= segments; i++) {
+    var phi = phiStart + i * inverseSegments * phiLength;
 
-	// generate vertices and uvs
+    var sin = Math.sin(phi);
+    var cos = Math.cos(phi);
 
-	for ( i = 0; i <= segments; i ++ ) {
+    for (j = 0; j <= points.length - 1; j++) {
+      // vertex
 
-		var phi = phiStart + i * inverseSegments * phiLength;
+      vertex.x = points[j].x * sin;
+      vertex.y = points[j].y;
+      vertex.z = points[j].x * cos;
 
-		var sin = Math.sin( phi );
-		var cos = Math.cos( phi );
+      vertices.push(vertex.x, vertex.y, vertex.z);
 
-		for ( j = 0; j <= ( points.length - 1 ); j ++ ) {
+      // uv
 
-			// vertex
+      uv.x = i / segments;
+      uv.y = j / (points.length - 1);
 
-			vertex.x = points[ j ].x * sin;
-			vertex.y = points[ j ].y;
-			vertex.z = points[ j ].x * cos;
+      uvs.push(uv.x, uv.y);
+    }
+  }
 
-			vertices.push( vertex.x, vertex.y, vertex.z );
+  // indices
 
-			// uv
+  for (i = 0; i < segments; i++) {
+    for (j = 0; j < points.length - 1; j++) {
+      base = j + i * points.length;
 
-			uv.x = i / segments;
-			uv.y = j / ( points.length - 1 );
+      var a = base;
+      var b = base + points.length;
+      var c = base + points.length + 1;
+      var d = base + 1;
 
-			uvs.push( uv.x, uv.y );
+      // faces
 
+      indices.push(a, b, d);
+      indices.push(b, c, d);
+    }
+  }
 
-		}
+  // build geometry
 
-	}
+  this.setIndex(indices);
+  this.addAttribute("position", new Float32BufferAttribute(vertices, 3));
+  this.addAttribute("uv", new Float32BufferAttribute(uvs, 2));
 
-	// indices
+  // generate normals
 
-	for ( i = 0; i < segments; i ++ ) {
+  this.computeVertexNormals();
 
-		for ( j = 0; j < ( points.length - 1 ); j ++ ) {
+  // if the geometry is closed, we need to average the normals along the seam.
+  // because the corresponding vertices are identical (but still have different UVs).
 
-			base = j + i * points.length;
+  if (phiLength === Math.PI * 2) {
+    var normals = this.attributes.normal.array;
+    var n1 = new Vector3();
+    var n2 = new Vector3();
+    var n = new Vector3();
 
-			var a = base;
-			var b = base + points.length;
-			var c = base + points.length + 1;
-			var d = base + 1;
+    // this is the buffer offset for the last line of vertices
 
-			// faces
+    base = segments * points.length * 3;
 
-			indices.push( a, b, d );
-			indices.push( b, c, d );
+    for (i = 0, j = 0; i < points.length; i++, j += 3) {
+      // select the normal of the vertex in the first line
 
-		}
+      n1.x = normals[j + 0];
+      n1.y = normals[j + 1];
+      n1.z = normals[j + 2];
 
-	}
+      // select the normal of the vertex in the last line
 
-	// build geometry
+      n2.x = normals[base + j + 0];
+      n2.y = normals[base + j + 1];
+      n2.z = normals[base + j + 2];
 
-	this.setIndex( indices );
-	this.addAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
-	this.addAttribute( 'uv', new Float32BufferAttribute( uvs, 2 ) );
+      // average normals
 
-	// generate normals
+      n.addVectors(n1, n2).normalize();
 
-	this.computeVertexNormals();
+      // assign the new values to both normals
 
-	// if the geometry is closed, we need to average the normals along the seam.
-	// because the corresponding vertices are identical (but still have different UVs).
-
-	if ( phiLength === Math.PI * 2 ) {
-
-		var normals = this.attributes.normal.array;
-		var n1 = new Vector3();
-		var n2 = new Vector3();
-		var n = new Vector3();
-
-		// this is the buffer offset for the last line of vertices
-
-		base = segments * points.length * 3;
-
-		for ( i = 0, j = 0; i < points.length; i ++, j += 3 ) {
-
-			// select the normal of the vertex in the first line
-
-			n1.x = normals[ j + 0 ];
-			n1.y = normals[ j + 1 ];
-			n1.z = normals[ j + 2 ];
-
-			// select the normal of the vertex in the last line
-
-			n2.x = normals[ base + j + 0 ];
-			n2.y = normals[ base + j + 1 ];
-			n2.z = normals[ base + j + 2 ];
-
-			// average normals
-
-			n.addVectors( n1, n2 ).normalize();
-
-			// assign the new values to both normals
-
-			normals[ j + 0 ] = normals[ base + j + 0 ] = n.x;
-			normals[ j + 1 ] = normals[ base + j + 1 ] = n.y;
-			normals[ j + 2 ] = normals[ base + j + 2 ] = n.z;
-
-		}
-
-	}
-
+      normals[j + 0] = normals[base + j + 0] = n.x;
+      normals[j + 1] = normals[base + j + 1] = n.y;
+      normals[j + 2] = normals[base + j + 2] = n.z;
+    }
+  }
 }
 
-LatheBufferGeometry.prototype = Object.create( BufferGeometry.prototype );
+LatheBufferGeometry.prototype = Object.create(BufferGeometry.prototype);
 LatheBufferGeometry.prototype.constructor = LatheBufferGeometry;
-
 
 export { LatheGeometry, LatheBufferGeometry };
