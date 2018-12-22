@@ -59,6 +59,7 @@ Object.assign(Ray.prototype, {
     };
   })(),
 
+  // 计算射线上的特定点，使其与给定的参数point距离最近
   closestPointToPoint: function(point, target) {
     if (target === undefined) {
       console.warn("THREE.Ray: .closestPointToPoint() target is now required");
@@ -79,6 +80,7 @@ Object.assign(Ray.prototype, {
       .add(this.origin);
   },
 
+  // 计算射线与参数point的距离
   distanceToPoint: function(point) {
     return Math.sqrt(this.distanceSqToPoint(point));
   },

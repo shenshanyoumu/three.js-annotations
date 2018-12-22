@@ -217,7 +217,7 @@ Object.assign(Vector2.prototype, {
     return this;
   },
 
-  // 夹逼方法，得到min/max/this三个坐标点的“中间”点
+  // 夹逼方法，得到min/max/this三个坐标点的“中间”点。
   clamp: function(min, max) {
     this.x = Math.max(min.x, Math.min(max.x, this.x));
     this.y = Math.max(min.y, Math.min(max.y, this.y));
@@ -284,7 +284,7 @@ Object.assign(Vector2.prototype, {
     return this;
   },
 
-  // 向量点乘
+  // 向量内积
   dot: function(v) {
     return this.x * v.x + this.y * v.y;
   },
