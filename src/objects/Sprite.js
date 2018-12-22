@@ -1,82 +1,62 @@
-import { Vector2 } from '../math/Vector2.js';
-import { Vector3 } from '../math/Vector3.js';
-import { Object3D } from '../core/Object3D.js';
-import { SpriteMaterial } from '../materials/SpriteMaterial.js';
+import { Vector2 } from "../math/Vector2.js";
+import { Vector3 } from "../math/Vector3.js";
+import { Object3D } from "../core/Object3D.js";
+import { SpriteMaterial } from "../materials/SpriteMaterial.js";
 
-/**
- * @author mikael emtinger / http://gomo.se/
- * @author alteredq / http://alteredqualia.com/
- */
+// 精灵对象，一种不会呈现在3D场景中的对象，常用于控制场景可见对象的碰撞检测等
+function Sprite(material) {
+  Object3D.call(this);
 
-function Sprite( material ) {
+  this.type = "Sprite";
 
-	Object3D.call( this );
+  this.material = material !== undefined ? material : new SpriteMaterial();
 
-	this.type = 'Sprite';
-
-	this.material = ( material !== undefined ) ? material : new SpriteMaterial();
-
-	this.center = new Vector2( 0.5, 0.5 );
-
+  this.center = new Vector2(0.5, 0.5);
 }
 
-Sprite.prototype = Object.assign( Object.create( Object3D.prototype ), {
+Sprite.prototype = Object.assign(Object.create(Object3D.prototype), {
+  constructor: Sprite,
 
-	constructor: Sprite,
+  isSprite: true,
 
-	isSprite: true,
+  raycast: (function() {
+    var intersectPoint = new Vector3();
+    var worldPosition = new Vector3();
+    var worldScale = new Vector3();
 
-	raycast: ( function () {
+    return function raycast(raycaster, intersects) {
+      worldPosition.setFromMatrixPosition(this.matrixWorld);
+      raycaster.ray.closestPointToPoint(worldPosition, intersectPoint);
 
-		var intersectPoint = new Vector3();
-		var worldPosition = new Vector3();
-		var worldScale = new Vector3();
+      worldScale.setFromMatrixScale(this.matrixWorld);
+      var guessSizeSq = (worldScale.x * worldScale.y) / 4;
 
-		return function raycast( raycaster, intersects ) {
+      if (worldPosition.distanceToSquared(intersectPoint) > guessSizeSq) return;
 
-			worldPosition.setFromMatrixPosition( this.matrixWorld );
-			raycaster.ray.closestPointToPoint( worldPosition, intersectPoint );
+      var distance = raycaster.ray.origin.distanceTo(intersectPoint);
 
-			worldScale.setFromMatrixScale( this.matrixWorld );
-			var guessSizeSq = worldScale.x * worldScale.y / 4;
+      if (distance < raycaster.near || distance > raycaster.far) return;
 
-			if ( worldPosition.distanceToSquared( intersectPoint ) > guessSizeSq ) return;
+      intersects.push({
+        distance: distance,
+        point: intersectPoint.clone(),
+        face: null,
+        object: this
+      });
+    };
+  })(),
 
-			var distance = raycaster.ray.origin.distanceTo( intersectPoint );
+  clone: function() {
+    return new this.constructor(this.material).copy(this);
+  },
 
-			if ( distance < raycaster.near || distance > raycaster.far ) return;
+  copy: function(source) {
+    Object3D.prototype.copy.call(this, source);
 
-			intersects.push( {
+    if (source.center !== undefined) this.center.copy(source.center);
 
-				distance: distance,
-				point: intersectPoint.clone(),
-				face: null,
-				object: this
-
-			} );
-
-		};
-
-	}() ),
-
-	clone: function () {
-
-		return new this.constructor( this.material ).copy( this );
-
-	},
-
-	copy: function ( source ) {
-
-		Object3D.prototype.copy.call( this, source );
-
-		if ( source.center !== undefined ) this.center.copy( source.center );
-
-		return this;
-
-	}
-
-
-} );
-
+    return this;
+  }
+});
 
 export { Sprite };

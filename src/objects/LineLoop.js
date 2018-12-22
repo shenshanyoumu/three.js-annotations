@@ -1,24 +1,16 @@
-import { Line } from './Line.js';
+import { Line } from "./Line.js";
 
-/**
- * @author mgreter / http://github.com/mgreter
- */
+// 可以形成闭环结构的线段对象
+function LineLoop(geometry, material) {
+  Line.call(this, geometry, material);
 
-function LineLoop( geometry, material ) {
-
-	Line.call( this, geometry, material );
-
-	this.type = 'LineLoop';
-
+  this.type = "LineLoop";
 }
 
-LineLoop.prototype = Object.assign( Object.create( Line.prototype ), {
+LineLoop.prototype = Object.assign(Object.create(Line.prototype), {
+  constructor: LineLoop,
 
-	constructor: LineLoop,
-
-	isLineLoop: true,
-
-} );
-
+  isLineLoop: true
+});
 
 export { LineLoop };

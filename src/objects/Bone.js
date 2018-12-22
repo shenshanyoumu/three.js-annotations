@@ -1,26 +1,16 @@
-import { Object3D } from '../core/Object3D.js';
+import { Object3D } from "../core/Object3D.js";
 
-/**
- * @author mikael emtinger / http://gomo.se/
- * @author alteredq / http://alteredqualia.com/
- * @author ikerr / http://verold.com
- */
-
+// 可以组成骨架模型的每一块骨头，用于控制骨架的运动
 function Bone() {
+  Object3D.call(this);
 
-	Object3D.call( this );
-
-	this.type = 'Bone';
-
+  this.type = "Bone";
 }
 
-Bone.prototype = Object.assign( Object.create( Object3D.prototype ), {
+Bone.prototype = Object.assign(Object.create(Object3D.prototype), {
+  constructor: Bone,
 
-	constructor: Bone,
-
-	isBone: true
-
-} );
-
+  isBone: true
+});
 
 export { Bone };

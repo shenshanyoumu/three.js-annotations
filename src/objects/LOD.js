@@ -1,12 +1,7 @@
 import { Vector3 } from "../math/Vector3.js";
 import { Object3D } from "../core/Object3D.js";
 
-/**
- * @author mikael emtinger / http://gomo.se/
- * @author alteredq / http://alteredqualia.com/
- * @author mrdoob / http://mrdoob.com/
- */
-
+// LOD，即Level of Detail,在3D场景渲染优化中经常使用的技术
 function LOD() {
   Object3D.call(this);
   this.type = "LOD";
@@ -28,6 +23,7 @@ LOD.prototype = Object.assign(Object.create(Object3D.prototype), {
 
     var levels = source.levels;
 
+    // 针对源模型，在不同的层级上添加不同细节实现的模型；这样在渲染优化中，可以对远处的模型采用细节比较少的替代物
     for (var i = 0, l = levels.length; i < l; i++) {
       var level = levels[i];
 
@@ -60,6 +56,7 @@ LOD.prototype = Object.assign(Object.create(Object3D.prototype), {
     this.add(object);
   },
 
+  // 根据物体与当前视野的距离，得到相应层级的物体替代物
   getObjectForDistance: function(distance) {
     var levels = this.levels;
 
@@ -115,6 +112,7 @@ LOD.prototype = Object.assign(Object.create(Object3D.prototype), {
     };
   })(),
 
+  // 模型的序列化处理
   toJSON: function(meta) {
     var data = Object3D.prototype.toJSON.call(this, meta);
 
