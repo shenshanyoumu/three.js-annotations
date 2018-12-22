@@ -1,5 +1,20 @@
 /**
  * 基于参数化采样插值的基类，参数定义域为一维尺度，比如时间或者曲线路径
+ *
+ * The sample values can have any dimensionality and derived classes may
+ * apply special interpretations to the data.
+ *
+ * This class provides the interval seek in a Template Method, deferring
+ * the actual interpolation to derived classes.
+ *
+ * Time complexity is O(1) for linear access crossing at most two points
+ * and O(log N) for random access, where N is the number of positions.
+ *
+ * References:
+ *
+ * 		http://www.oodesign.com/template-method-pattern.html
+ *
+ * @author tschw
  */
 
 function Interpolant(
@@ -31,6 +46,7 @@ Object.assign(Interpolant.prototype, {
         var right;
 
         linear_scan: {
+          // 类似goto语句来控制循环
           forward_scan: if (!(t < t1)) {
             for (var giveUpAt = i1 + 2; ; ) {
               if (t1 === undefined) {
