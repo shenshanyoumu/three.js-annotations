@@ -1,8 +1,5 @@
 /**
- * Abstract base class of interpolants over parametric samples.
- *
- * The parameter domain is one dimensional, typically the time or a path
- * along a curve defined by the data.
+ * 基于参数化采样插值的基类，参数定义域为一维尺度，比如时间或者曲线路径
  *
  * The sample values can have any dimensionality and derived classes may
  * apply special interpretations to the data.
@@ -49,10 +46,7 @@ Object.assign(Interpolant.prototype, {
         var right;
 
         linear_scan: {
-          //- See http://jsperf.com/comparison-to-undefined/3
-          //- slower code:
-          //-
-          //- 				if ( t >= t1 || t1 === undefined ) {
+          // 类似goto语句来控制循环
           forward_scan: if (!(t < t1)) {
             for (var giveUpAt = i1 + 2; ; ) {
               if (t1 === undefined) {

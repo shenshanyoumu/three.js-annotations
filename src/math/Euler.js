@@ -3,12 +3,7 @@ import { Vector3 } from "./Vector3.js";
 import { Matrix4 } from "./Matrix4.js";
 import { _Math } from "./Math.js";
 
-/**
- * @author mrdoob / http://mrdoob.com/
- * @author WestLangley / http://github.com/WestLangley
- * @author bhouston / http://clara.io
- */
-
+// 欧拉角表示的旋转变换比较直观，但是在特定情况下会产生万向节锁
 function Euler(x, y, z, order) {
   this._x = x || 0;
   this._y = y || 0;
@@ -27,6 +22,7 @@ Object.defineProperties(Euler.prototype, {
       return this._x;
     },
 
+    // 对象的属性拦截，当设置数值会触发回调。一般就是触发场景的重新渲染
     set: function(value) {
       this._x = value;
       this.onChangeCallback();
@@ -97,10 +93,9 @@ Object.assign(Euler.prototype, {
     return this;
   },
 
+  // 变换矩阵左上角的3*3小矩阵表示旋转变换
   setFromRotationMatrix: function(m, order, update) {
     var clamp = _Math.clamp;
-
-    // assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
 
     var te = m.elements;
     var m11 = te[0],

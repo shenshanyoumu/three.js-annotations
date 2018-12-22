@@ -1,10 +1,6 @@
 import { Vector3 } from "./Vector3.js";
 
-/**
- * @author bhouston / http://clara.io
- */
-
-//  射线对象
+//  射线对象，需要定义射线的端点和方向
 function Ray(origin, direction) {
   this.origin = origin !== undefined ? origin : new Vector3();
   this.direction = direction !== undefined ? direction : new Vector3();
@@ -29,7 +25,7 @@ Object.assign(Ray.prototype, {
     return this;
   },
 
-  // 在射线方向t倍位置的坐标
+  // 在射线方向t倍单位处位置的坐标
   at: function(t, target) {
     if (target === undefined) {
       console.warn("THREE.Ray: .at() target is now required");
@@ -63,6 +59,7 @@ Object.assign(Ray.prototype, {
     };
   })(),
 
+  // 计算射线上的特定点，使其与给定的参数point距离最近
   closestPointToPoint: function(point, target) {
     if (target === undefined) {
       console.warn("THREE.Ray: .closestPointToPoint() target is now required");
@@ -83,6 +80,7 @@ Object.assign(Ray.prototype, {
       .add(this.origin);
   },
 
+  // 计算射线与参数point的距离
   distanceToPoint: function(point) {
     return Math.sqrt(this.distanceSqToPoint(point));
   },
@@ -456,6 +454,7 @@ Object.assign(Ray.prototype, {
     return this;
   },
 
+  // 判定两个射线对象是否相等
   equals: function(ray) {
     return (
       ray.origin.equals(this.origin) && ray.direction.equals(this.direction)

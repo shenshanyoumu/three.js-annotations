@@ -2,7 +2,7 @@ import { _Math } from "./Math.js";
 import { Matrix4 } from "./Matrix4.js";
 import { Quaternion } from "./Quaternion.js";
 
-//  三维向量
+//  三维向量,其具备的方法类似二维向量对象
 function Vector3(x, y, z) {
   this.x = x || 0;
   this.y = y || 0;
@@ -175,6 +175,7 @@ Object.assign(Vector3.prototype, {
     return this;
   },
 
+  // 三维向量的分量进行等比例缩放
   multiplyScalar: function(scalar) {
     this.x *= scalar;
     this.y *= scalar;
@@ -227,6 +228,7 @@ Object.assign(Vector3.prototype, {
     return this;
   },
 
+  // 运动变换矩阵作用于三维坐标系，表示对该三维坐标系中的物体进行变换处理
   applyMatrix4: function(m) {
     var x = this.x,
       y = this.y,
@@ -512,10 +514,12 @@ Object.assign(Vector3.prototype, {
     return Math.acos(_Math.clamp(theta, -1, 1));
   },
 
+  // 两个点的欧氏距离
   distanceTo: function(v) {
     return Math.sqrt(this.distanceToSquared(v));
   },
 
+  // 两个三维点的距离平方
   distanceToSquared: function(v) {
     var dx = this.x - v.x,
       dy = this.y - v.y,
@@ -524,13 +528,14 @@ Object.assign(Vector3.prototype, {
     return dx * dx + dy * dy + dz * dz;
   },
 
+  // 两个点的曼哈顿距离
   manhattanDistanceTo: function(v) {
     return (
       Math.abs(this.x - v.x) + Math.abs(this.y - v.y) + Math.abs(this.z - v.z)
     );
   },
 
-  // 从球面坐标到三维向量
+  // 从球面坐标到笛卡尔坐标系中的三维向量
   setFromSpherical: function(s) {
     var sinPhiRadius = Math.sin(s.phi) * s.radius;
 
@@ -541,7 +546,7 @@ Object.assign(Vector3.prototype, {
     return this;
   },
 
-  // 从柱面变换到三维向量
+  // 从柱面变换到笛卡尔坐标系的三维向量
   setFromCylindrical: function(c) {
     this.x = c.radius * Math.sin(c.theta);
     this.y = c.y;
@@ -583,6 +588,7 @@ Object.assign(Vector3.prototype, {
     return v.x === this.x && v.y === this.y && v.z === this.z;
   },
 
+  // 根据数组截取部分元素作为三位向量的分量值
   fromArray: function(array, offset) {
     if (offset === undefined) offset = 0;
 
@@ -604,6 +610,7 @@ Object.assign(Vector3.prototype, {
     return array;
   },
 
+  // 根据属性缓冲对象得到三维向量
   fromBufferAttribute: function(attribute, index, offset) {
     if (offset !== undefined) {
       console.warn(
