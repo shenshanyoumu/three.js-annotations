@@ -379,6 +379,7 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     return target.setFromMatrixPosition(this.matrixWorld);
   },
 
+  // 得到模型对象在世界坐标系中从初始位置变换到当前位置的四元数
   getWorldQuaternion: (function() {
     var position = new Vector3();
     var scale = new Vector3();
@@ -411,12 +412,14 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
 
       this.updateMatrixWorld(true);
 
+      // 对世界坐标系中的变换矩阵进行分解，得到模型对象在世界坐标系中的位置、旋转四元数等
       this.matrixWorld.decompose(position, quaternion, target);
 
       return target;
     };
   })(),
 
+  //
   getWorldDirection: (function() {
     var quaternion = new Quaternion();
 

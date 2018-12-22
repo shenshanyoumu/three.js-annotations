@@ -244,6 +244,7 @@ Object.assign(Vector3.prototype, {
     return this;
   },
 
+  // 三维向量与四元数的运算，物理意义就是三维向量在世界坐标系中的旋转变换
   applyQuaternion: function(q) {
     var x = this.x,
       y = this.y,
