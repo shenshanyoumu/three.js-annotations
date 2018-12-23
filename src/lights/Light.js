@@ -1,62 +1,74 @@
-import { Object3D } from '../core/Object3D.js';
-import { Color } from '../math/Color.js';
+import { Object3D } from "../core/Object3D.js";
+import { Color } from "../math/Color.js";
 
 /**
  * @author mrdoob / http://mrdoob.com/
  * @author alteredq / http://alteredqualia.com/
  */
 
-function Light( color, intensity ) {
+/**
+ *
+ * @param {*} color 光照主色调
+ * @param {*} intensity 光照强度
+ */
+function Light(color, intensity) {
+  Object3D.call(this);
 
-	Object3D.call( this );
+  this.type = "Light";
 
-	this.type = 'Light';
+  this.color = new Color(color);
+  this.intensity = intensity !== undefined ? intensity : 1;
 
-	this.color = new Color( color );
-	this.intensity = intensity !== undefined ? intensity : 1;
-
-	this.receiveShadow = undefined;
-
+  // 是否接受阴影效果
+  this.receiveShadow = undefined;
 }
 
-Light.prototype = Object.assign( Object.create( Object3D.prototype ), {
+Light.prototype = Object.assign(Object.create(Object3D.prototype), {
+  constructor: Light,
 
-	constructor: Light,
+  isLight: true,
 
-	isLight: true,
+  copy: function(source) {
+    Object3D.prototype.copy.call(this, source);
 
-	copy: function ( source ) {
+    this.color.copy(source.color);
+    this.intensity = source.intensity;
 
-		Object3D.prototype.copy.call( this, source );
+    return this;
+  },
 
-		this.color.copy( source.color );
-		this.intensity = source.intensity;
+  toJSON: function(meta) {
+    var data = Object3D.prototype.toJSON.call(this, meta);
 
-		return this;
+    data.object.color = this.color.getHex();
+    data.object.intensity = this.intensity;
 
-	},
+    if (this.groundColor !== undefined)
+      data.object.groundColor = this.groundColor.getHex();
 
-	toJSON: function ( meta ) {
+    // 被光照的物体距离
+    if (this.distance !== undefined) {
+      data.object.distance = this.distance;
+    }
+    if (this.angle !== undefined) data.object.angle = this.angle;
 
-		var data = Object3D.prototype.toJSON.call( this, meta );
+    // 光照强度衰减
+    if (this.decay !== undefined) {
+      data.object.decay = this.decay;
+    }
 
-		data.object.color = this.color.getHex();
-		data.object.intensity = this.intensity;
+    // 光照的半影效果
+    if (this.penumbra !== undefined) {
+      data.object.penumbra = this.penumbra;
+    }
 
-		if ( this.groundColor !== undefined ) data.object.groundColor = this.groundColor.getHex();
+    // 光照阴影投射
+    if (this.shadow !== undefined) {
+      data.object.shadow = this.shadow.toJSON();
+    }
 
-		if ( this.distance !== undefined ) data.object.distance = this.distance;
-		if ( this.angle !== undefined ) data.object.angle = this.angle;
-		if ( this.decay !== undefined ) data.object.decay = this.decay;
-		if ( this.penumbra !== undefined ) data.object.penumbra = this.penumbra;
-
-		if ( this.shadow !== undefined ) data.object.shadow = this.shadow.toJSON();
-
-		return data;
-
-	}
-
-} );
-
+    return data;
+  }
+});
 
 export { Light };

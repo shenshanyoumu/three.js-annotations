@@ -1,26 +1,26 @@
-import { Light } from './Light.js';
+import { Light } from "./Light.js";
 
 /**
  * @author mrdoob / http://mrdoob.com/
  */
 
-function AmbientLight( color, intensity ) {
+/**
+ * 环境光照
+ * @param {*} color
+ * @param {*} intensity
+ */
+function AmbientLight(color, intensity) {
+  Light.call(this, color, intensity);
 
-	Light.call( this, color, intensity );
+  this.type = "AmbientLight";
 
-	this.type = 'AmbientLight';
-
-	this.castShadow = undefined;
-
+  this.castShadow = undefined;
 }
 
-AmbientLight.prototype = Object.assign( Object.create( Light.prototype ), {
+AmbientLight.prototype = Object.assign(Object.create(Light.prototype), {
+  constructor: AmbientLight,
 
-	constructor: AmbientLight,
-
-	isAmbientLight: true
-
-} );
-
+  isAmbientLight: true
+});
 
 export { AmbientLight };

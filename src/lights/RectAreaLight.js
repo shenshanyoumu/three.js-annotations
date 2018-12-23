@@ -1,48 +1,47 @@
-import { Light } from './Light.js';
+import { Light } from "./Light.js";
 
 /**
  * @author abelnation / http://github.com/abelnation
  */
 
-function RectAreaLight( color, intensity, width, height ) {
+/**
+ * 平面光源
+ * @param {*} color
+ * @param {*} intensity
+ * @param {*} width
+ * @param {*} height
+ */
+function RectAreaLight(color, intensity, width, height) {
+  Light.call(this, color, intensity);
 
-	Light.call( this, color, intensity );
+  this.type = "RectAreaLight";
 
-	this.type = 'RectAreaLight';
-
-	this.width = ( width !== undefined ) ? width : 10;
-	this.height = ( height !== undefined ) ? height : 10;
-
+  this.width = width !== undefined ? width : 10;
+  this.height = height !== undefined ? height : 10;
 }
 
-RectAreaLight.prototype = Object.assign( Object.create( Light.prototype ), {
+RectAreaLight.prototype = Object.assign(Object.create(Light.prototype), {
+  constructor: RectAreaLight,
 
-	constructor: RectAreaLight,
+  isRectAreaLight: true,
 
-	isRectAreaLight: true,
+  copy: function(source) {
+    Light.prototype.copy.call(this, source);
 
-	copy: function ( source ) {
+    this.width = source.width;
+    this.height = source.height;
 
-		Light.prototype.copy.call( this, source );
+    return this;
+  },
 
-		this.width = source.width;
-		this.height = source.height;
+  toJSON: function(meta) {
+    var data = Light.prototype.toJSON.call(this, meta);
 
-		return this;
+    data.object.width = this.width;
+    data.object.height = this.height;
 
-	},
-
-	toJSON: function ( meta ) {
-
-		var data = Light.prototype.toJSON.call( this, meta );
-
-		data.object.width = this.width;
-		data.object.height = this.height;
-
-		return data;
-
-	}
-
-} );
+    return data;
+  }
+});
 
 export { RectAreaLight };
