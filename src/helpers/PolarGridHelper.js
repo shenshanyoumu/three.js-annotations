@@ -4,92 +4,93 @@
  * @author Hectate / http://www.github.com/Hectate
  */
 
-import { LineSegments } from '../objects/LineSegments.js';
-import { VertexColors } from '../constants.js';
-import { LineBasicMaterial } from '../materials/LineBasicMaterial.js';
-import { Float32BufferAttribute } from '../core/BufferAttribute.js';
-import { BufferGeometry } from '../core/BufferGeometry.js';
-import { Color } from '../math/Color.js';
+import { LineSegments } from "../objects/LineSegments.js";
+import { VertexColors } from "../constants.js";
+import { LineBasicMaterial } from "../materials/LineBasicMaterial.js";
+import { Float32BufferAttribute } from "../core/BufferAttribute.js";
+import { BufferGeometry } from "../core/BufferGeometry.js";
+import { Color } from "../math/Color.js";
 
-function PolarGridHelper( radius, radials, circles, divisions, color1, color2 ) {
+/**
+ * 极化的网格辅助线，类似地球表面经纬线
+ * @param {*} radius 赤道圆环半径
+ * @param {*} radials 极径尺寸
+ * @param {*} circles
+ * @param {*} divisions 表面划分
+ * @param {*} color1 经线颜色
+ * @param {*} color2 维线颜色
+ */
+function PolarGridHelper(radius, radials, circles, divisions, color1, color2) {
+  radius = radius || 10;
+  radials = radials || 16;
+  circles = circles || 8;
+  divisions = divisions || 64;
+  color1 = new Color(color1 !== undefined ? color1 : 0x444444);
+  color2 = new Color(color2 !== undefined ? color2 : 0x888888);
 
-	radius = radius || 10;
-	radials = radials || 16;
-	circles = circles || 8;
-	divisions = divisions || 64;
-	color1 = new Color( color1 !== undefined ? color1 : 0x444444 );
-	color2 = new Color( color2 !== undefined ? color2 : 0x888888 );
+  var vertices = [];
+  var colors = [];
 
-	var vertices = [];
-	var colors = [];
+  var x, z;
+  var v, i, j, r, color;
 
-	var x, z;
-	var v, i, j, r, color;
+  // create the radials
 
-	// create the radials
+  for (i = 0; i <= radials; i++) {
+    v = (i / radials) * (Math.PI * 2);
 
-	for ( i = 0; i <= radials; i ++ ) {
+    x = Math.sin(v) * radius;
+    z = Math.cos(v) * radius;
 
-		v = ( i / radials ) * ( Math.PI * 2 );
+    vertices.push(0, 0, 0);
+    vertices.push(x, 0, z);
 
-		x = Math.sin( v ) * radius;
-		z = Math.cos( v ) * radius;
+    color = i & 1 ? color1 : color2;
 
-		vertices.push( 0, 0, 0 );
-		vertices.push( x, 0, z );
+    colors.push(color.r, color.g, color.b);
+    colors.push(color.r, color.g, color.b);
+  }
 
-		color = ( i & 1 ) ? color1 : color2;
+  // create the circles
 
-		colors.push( color.r, color.g, color.b );
-		colors.push( color.r, color.g, color.b );
+  for (i = 0; i <= circles; i++) {
+    color = i & 1 ? color1 : color2;
 
-	}
+    r = radius - (radius / circles) * i;
 
-	// create the circles
+    for (j = 0; j < divisions; j++) {
+      // first vertex
 
-	for ( i = 0; i <= circles; i ++ ) {
+      v = (j / divisions) * (Math.PI * 2);
 
-		color = ( i & 1 ) ? color1 : color2;
+      x = Math.sin(v) * r;
+      z = Math.cos(v) * r;
 
-		r = radius - ( radius / circles * i );
+      vertices.push(x, 0, z);
+      colors.push(color.r, color.g, color.b);
 
-		for ( j = 0; j < divisions; j ++ ) {
+      // second vertex
 
-			// first vertex
+      v = ((j + 1) / divisions) * (Math.PI * 2);
 
-			v = ( j / divisions ) * ( Math.PI * 2 );
+      x = Math.sin(v) * r;
+      z = Math.cos(v) * r;
 
-			x = Math.sin( v ) * r;
-			z = Math.cos( v ) * r;
+      vertices.push(x, 0, z);
+      colors.push(color.r, color.g, color.b);
+    }
+  }
 
-			vertices.push( x, 0, z );
-			colors.push( color.r, color.g, color.b );
+  var geometry = new BufferGeometry();
+  geometry.addAttribute("position", new Float32BufferAttribute(vertices, 3));
+  geometry.addAttribute("color", new Float32BufferAttribute(colors, 3));
 
-			// second vertex
+  var material = new LineBasicMaterial({ vertexColors: VertexColors });
 
-			v = ( ( j + 1 ) / divisions ) * ( Math.PI * 2 );
-
-			x = Math.sin( v ) * r;
-			z = Math.cos( v ) * r;
-
-			vertices.push( x, 0, z );
-			colors.push( color.r, color.g, color.b );
-
-		}
-
-	}
-
-	var geometry = new BufferGeometry();
-	geometry.addAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
-	geometry.addAttribute( 'color', new Float32BufferAttribute( colors, 3 ) );
-
-	var material = new LineBasicMaterial( { vertexColors: VertexColors } );
-
-	LineSegments.call( this, geometry, material );
-
+  LineSegments.call(this, geometry, material);
 }
 
-PolarGridHelper.prototype = Object.create( LineSegments.prototype );
+PolarGridHelper.prototype = Object.create(LineSegments.prototype);
 PolarGridHelper.prototype.constructor = PolarGridHelper;
 
 export { PolarGridHelper };

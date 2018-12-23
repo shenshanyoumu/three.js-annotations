@@ -14,108 +14,101 @@
  *  headWidth - Number
  */
 
-import { Float32BufferAttribute } from '../core/BufferAttribute.js';
-import { BufferGeometry } from '../core/BufferGeometry.js';
-import { Object3D } from '../core/Object3D.js';
-import { CylinderBufferGeometry } from '../geometries/CylinderGeometry.js';
-import { MeshBasicMaterial } from '../materials/MeshBasicMaterial.js';
-import { LineBasicMaterial } from '../materials/LineBasicMaterial.js';
-import { Mesh } from '../objects/Mesh.js';
-import { Line } from '../objects/Line.js';
-import { Vector3 } from '../math/Vector3.js';
+import { Float32BufferAttribute } from "../core/BufferAttribute.js";
+import { BufferGeometry } from "../core/BufferGeometry.js";
+import { Object3D } from "../core/Object3D.js";
+import { CylinderBufferGeometry } from "../geometries/CylinderGeometry.js";
+import { MeshBasicMaterial } from "../materials/MeshBasicMaterial.js";
+import { LineBasicMaterial } from "../materials/LineBasicMaterial.js";
+import { Mesh } from "../objects/Mesh.js";
+import { Line } from "../objects/Line.js";
+import { Vector3 } from "../math/Vector3.js";
 
 var lineGeometry, coneGeometry;
 
-function ArrowHelper( dir, origin, length, color, headLength, headWidth ) {
+/**
+ * 3D场景中标记方向箭头
+ * @param {*} dir 归一化的方向向量
+ * @param {*} origin 方向向量开始坐标
+ * @param {*} length 方向向量长度
+ * @param {*} color 箭头图标颜色
+ * @param {*} headLength 箭头头部尺寸
+ * @param {*} headWidth
+ */
+function ArrowHelper(dir, origin, length, color, headLength, headWidth) {
+  // dir is assumed to be normalized
 
-	// dir is assumed to be normalized
+  Object3D.call(this);
 
-	Object3D.call( this );
+  if (color === undefined) color = 0xffff00;
+  if (length === undefined) length = 1;
+  if (headLength === undefined) headLength = 0.2 * length;
+  if (headWidth === undefined) headWidth = 0.2 * headLength;
 
-	if ( color === undefined ) color = 0xffff00;
-	if ( length === undefined ) length = 1;
-	if ( headLength === undefined ) headLength = 0.2 * length;
-	if ( headWidth === undefined ) headWidth = 0.2 * headLength;
+  if (lineGeometry === undefined) {
+    lineGeometry = new BufferGeometry();
+    lineGeometry.addAttribute(
+      "position",
+      new Float32BufferAttribute([0, 0, 0, 0, 1, 0], 3)
+    );
 
-	if ( lineGeometry === undefined ) {
+    coneGeometry = new CylinderBufferGeometry(0, 0.5, 1, 5, 1);
+    coneGeometry.translate(0, -0.5, 0);
+  }
 
-		lineGeometry = new BufferGeometry();
-		lineGeometry.addAttribute( 'position', new Float32BufferAttribute( [ 0, 0, 0, 0, 1, 0 ], 3 ) );
+  this.position.copy(origin);
 
-		coneGeometry = new CylinderBufferGeometry( 0, 0.5, 1, 5, 1 );
-		coneGeometry.translate( 0, - 0.5, 0 );
+  this.line = new Line(lineGeometry, new LineBasicMaterial({ color: color }));
+  this.line.matrixAutoUpdate = false;
+  this.add(this.line);
 
-	}
+  this.cone = new Mesh(coneGeometry, new MeshBasicMaterial({ color: color }));
+  this.cone.matrixAutoUpdate = false;
+  this.add(this.cone);
 
-	this.position.copy( origin );
-
-	this.line = new Line( lineGeometry, new LineBasicMaterial( { color: color } ) );
-	this.line.matrixAutoUpdate = false;
-	this.add( this.line );
-
-	this.cone = new Mesh( coneGeometry, new MeshBasicMaterial( { color: color } ) );
-	this.cone.matrixAutoUpdate = false;
-	this.add( this.cone );
-
-	this.setDirection( dir );
-	this.setLength( length, headLength, headWidth );
-
+  this.setDirection(dir);
+  this.setLength(length, headLength, headWidth);
 }
 
-ArrowHelper.prototype = Object.create( Object3D.prototype );
+ArrowHelper.prototype = Object.create(Object3D.prototype);
 ArrowHelper.prototype.constructor = ArrowHelper;
 
-ArrowHelper.prototype.setDirection = ( function () {
+ArrowHelper.prototype.setDirection = (function() {
+  var axis = new Vector3();
+  var radians;
 
-	var axis = new Vector3();
-	var radians;
+  return function setDirection(dir) {
+    // dir is assumed to be normalized
 
-	return function setDirection( dir ) {
+    if (dir.y > 0.99999) {
+      this.quaternion.set(0, 0, 0, 1);
+    } else if (dir.y < -0.99999) {
+      this.quaternion.set(1, 0, 0, 0);
+    } else {
+      axis.set(dir.z, 0, -dir.x).normalize();
 
-		// dir is assumed to be normalized
+      radians = Math.acos(dir.y);
 
-		if ( dir.y > 0.99999 ) {
+      this.quaternion.setFromAxisAngle(axis, radians);
+    }
+  };
+})();
 
-			this.quaternion.set( 0, 0, 0, 1 );
+ArrowHelper.prototype.setLength = function(length, headLength, headWidth) {
+  if (headLength === undefined) headLength = 0.2 * length;
+  if (headWidth === undefined) headWidth = 0.2 * headLength;
 
-		} else if ( dir.y < - 0.99999 ) {
+  this.line.scale.set(1, Math.max(0, length - headLength), 1);
+  this.line.updateMatrix();
 
-			this.quaternion.set( 1, 0, 0, 0 );
-
-		} else {
-
-			axis.set( dir.z, 0, - dir.x ).normalize();
-
-			radians = Math.acos( dir.y );
-
-			this.quaternion.setFromAxisAngle( axis, radians );
-
-		}
-
-	};
-
-}() );
-
-ArrowHelper.prototype.setLength = function ( length, headLength, headWidth ) {
-
-	if ( headLength === undefined ) headLength = 0.2 * length;
-	if ( headWidth === undefined ) headWidth = 0.2 * headLength;
-
-	this.line.scale.set( 1, Math.max( 0, length - headLength ), 1 );
-	this.line.updateMatrix();
-
-	this.cone.scale.set( headWidth, headLength, headWidth );
-	this.cone.position.y = length;
-	this.cone.updateMatrix();
-
+  this.cone.scale.set(headWidth, headLength, headWidth);
+  this.cone.position.y = length;
+  this.cone.updateMatrix();
 };
 
-ArrowHelper.prototype.setColor = function ( color ) {
-
-	this.line.material.color.copy( color );
-	this.cone.material.color.copy( color );
-
+ArrowHelper.prototype.setColor = function(color) {
+  this.line.material.color.copy(color);
+  this.cone.material.color.copy(color);
 };
-
 
 export { ArrowHelper };

@@ -3,116 +3,120 @@
  * @author WestLangley / http://github.com/WestLangley
  */
 
-import { Matrix3 } from '../math/Matrix3.js';
-import { Vector3 } from '../math/Vector3.js';
-import { LineSegments } from '../objects/LineSegments.js';
-import { LineBasicMaterial } from '../materials/LineBasicMaterial.js';
-import { Float32BufferAttribute } from '../core/BufferAttribute.js';
-import { BufferGeometry } from '../core/BufferGeometry.js';
+import { Matrix3 } from "../math/Matrix3.js";
+import { Vector3 } from "../math/Vector3.js";
+import { LineSegments } from "../objects/LineSegments.js";
+import { LineBasicMaterial } from "../materials/LineBasicMaterial.js";
+import { Float32BufferAttribute } from "../core/BufferAttribute.js";
+import { BufferGeometry } from "../core/BufferGeometry.js";
 
-function FaceNormalsHelper( object, size, hex, linewidth ) {
+/**
+ *标记模型表面的法向量
+ * @param {*} object 模型对象
+ * @param {*} size 法向量的长度
+ * @param {*} hex 法向量的颜色
+ * @param {*} linewidth 法向量的线宽
+ */
+function FaceNormalsHelper(object, size, hex, linewidth) {
+  // FaceNormalsHelper only supports THREE.Geometry
 
-	// FaceNormalsHelper only supports THREE.Geometry
+  this.object = object;
 
-	this.object = object;
+  this.size = size !== undefined ? size : 1;
 
-	this.size = ( size !== undefined ) ? size : 1;
+  var color = hex !== undefined ? hex : 0xffff00;
 
-	var color = ( hex !== undefined ) ? hex : 0xffff00;
+  var width = linewidth !== undefined ? linewidth : 1;
 
-	var width = ( linewidth !== undefined ) ? linewidth : 1;
+  //
 
-	//
+  var nNormals = 0;
 
-	var nNormals = 0;
+  var objGeometry = this.object.geometry;
 
-	var objGeometry = this.object.geometry;
+  if (objGeometry && objGeometry.isGeometry) {
+    nNormals = objGeometry.faces.length;
+  } else {
+    console.warn(
+      "THREE.FaceNormalsHelper: only THREE.Geometry is supported. Use THREE.VertexNormalsHelper, instead."
+    );
+  }
 
-	if ( objGeometry && objGeometry.isGeometry ) {
+  //
 
-		nNormals = objGeometry.faces.length;
+  var geometry = new BufferGeometry();
 
-	} else {
+  var positions = new Float32BufferAttribute(nNormals * 2 * 3, 3);
 
-		console.warn( 'THREE.FaceNormalsHelper: only THREE.Geometry is supported. Use THREE.VertexNormalsHelper, instead.' );
+  geometry.addAttribute("position", positions);
 
-	}
+  LineSegments.call(
+    this,
+    geometry,
+    new LineBasicMaterial({ color: color, linewidth: width })
+  );
 
-	//
+  //
 
-	var geometry = new BufferGeometry();
-
-	var positions = new Float32BufferAttribute( nNormals * 2 * 3, 3 );
-
-	geometry.addAttribute( 'position', positions );
-
-	LineSegments.call( this, geometry, new LineBasicMaterial( { color: color, linewidth: width } ) );
-
-	//
-
-	this.matrixAutoUpdate = false;
-	this.update();
-
+  this.matrixAutoUpdate = false;
+  this.update();
 }
 
-FaceNormalsHelper.prototype = Object.create( LineSegments.prototype );
+FaceNormalsHelper.prototype = Object.create(LineSegments.prototype);
 FaceNormalsHelper.prototype.constructor = FaceNormalsHelper;
 
-FaceNormalsHelper.prototype.update = ( function () {
+FaceNormalsHelper.prototype.update = (function() {
+  var v1 = new Vector3();
+  var v2 = new Vector3();
+  var normalMatrix = new Matrix3();
 
-	var v1 = new Vector3();
-	var v2 = new Vector3();
-	var normalMatrix = new Matrix3();
+  return function update() {
+    this.object.updateMatrixWorld(true);
 
-	return function update() {
+    normalMatrix.getNormalMatrix(this.object.matrixWorld);
 
-		this.object.updateMatrixWorld( true );
+    var matrixWorld = this.object.matrixWorld;
 
-		normalMatrix.getNormalMatrix( this.object.matrixWorld );
+    var position = this.geometry.attributes.position;
 
-		var matrixWorld = this.object.matrixWorld;
+    //
 
-		var position = this.geometry.attributes.position;
+    var objGeometry = this.object.geometry;
 
-		//
+    var vertices = objGeometry.vertices;
 
-		var objGeometry = this.object.geometry;
+    var faces = objGeometry.faces;
 
-		var vertices = objGeometry.vertices;
+    var idx = 0;
 
-		var faces = objGeometry.faces;
+    for (var i = 0, l = faces.length; i < l; i++) {
+      var face = faces[i];
 
-		var idx = 0;
+      var normal = face.normal;
 
-		for ( var i = 0, l = faces.length; i < l; i ++ ) {
+      v1.copy(vertices[face.a])
+        .add(vertices[face.b])
+        .add(vertices[face.c])
+        .divideScalar(3)
+        .applyMatrix4(matrixWorld);
 
-			var face = faces[ i ];
+      v2.copy(normal)
+        .applyMatrix3(normalMatrix)
+        .normalize()
+        .multiplyScalar(this.size)
+        .add(v1);
 
-			var normal = face.normal;
+      position.setXYZ(idx, v1.x, v1.y, v1.z);
 
-			v1.copy( vertices[ face.a ] )
-				.add( vertices[ face.b ] )
-				.add( vertices[ face.c ] )
-				.divideScalar( 3 )
-				.applyMatrix4( matrixWorld );
+      idx = idx + 1;
 
-			v2.copy( normal ).applyMatrix3( normalMatrix ).normalize().multiplyScalar( this.size ).add( v1 );
+      position.setXYZ(idx, v2.x, v2.y, v2.z);
 
-			position.setXYZ( idx, v1.x, v1.y, v1.z );
+      idx = idx + 1;
+    }
 
-			idx = idx + 1;
-
-			position.setXYZ( idx, v2.x, v2.y, v2.z );
-
-			idx = idx + 1;
-
-		}
-
-		position.needsUpdate = true;
-
-	};
-
-}() );
-
+    position.needsUpdate = true;
+  };
+})();
 
 export { FaceNormalsHelper };
