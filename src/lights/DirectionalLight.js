@@ -1,46 +1,44 @@
-import { Light } from './Light.js';
-import { DirectionalLightShadow } from './DirectionalLightShadow.js';
-import { Object3D } from '../core/Object3D.js';
+import { Light } from "./Light.js";
+import { DirectionalLightShadow } from "./DirectionalLightShadow.js";
+import { Object3D } from "../core/Object3D.js";
 
 /**
  * @author mrdoob / http://mrdoob.com/
  * @author alteredq / http://alteredqualia.com/
  */
 
-function DirectionalLight( color, intensity ) {
+/**
+ * 直线光照
+ * @param {*} color
+ * @param {*} intensity
+ */
+function DirectionalLight(color, intensity) {
+  Light.call(this, color, intensity);
 
-	Light.call( this, color, intensity );
+  this.type = "DirectionalLight";
 
-	this.type = 'DirectionalLight';
+  this.position.copy(Object3D.DefaultUp);
+  this.updateMatrix();
 
-	this.position.copy( Object3D.DefaultUp );
-	this.updateMatrix();
+  this.target = new Object3D();
 
-	this.target = new Object3D();
-
-	this.shadow = new DirectionalLightShadow();
-
+  this.shadow = new DirectionalLightShadow();
 }
 
-DirectionalLight.prototype = Object.assign( Object.create( Light.prototype ), {
+DirectionalLight.prototype = Object.assign(Object.create(Light.prototype), {
+  constructor: DirectionalLight,
 
-	constructor: DirectionalLight,
+  isDirectionalLight: true,
 
-	isDirectionalLight: true,
+  copy: function(source) {
+    Light.prototype.copy.call(this, source);
 
-	copy: function ( source ) {
+    this.target = source.target.clone();
 
-		Light.prototype.copy.call( this, source );
+    this.shadow = source.shadow.clone();
 
-		this.target = source.target.clone();
-
-		this.shadow = source.shadow.clone();
-
-		return this;
-
-	}
-
-} );
-
+    return this;
+  }
+});
 
 export { DirectionalLight };

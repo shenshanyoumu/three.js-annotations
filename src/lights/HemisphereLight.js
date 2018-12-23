@@ -1,43 +1,42 @@
-import { Light } from './Light.js';
-import { Color } from '../math/Color.js';
-import { Object3D } from '../core/Object3D.js';
+import { Light } from "./Light.js";
+import { Color } from "../math/Color.js";
+import { Object3D } from "../core/Object3D.js";
 
 /**
  * @author alteredq / http://alteredqualia.com/
  */
 
-function HemisphereLight( skyColor, groundColor, intensity ) {
+/**
+ * 半球面光源
+ * @param {*} skyColor 3D场景中天空的主色调
+ * @param {*} groundColor 地面主色调
+ * @param {*} intensity 光照强度
+ */
+function HemisphereLight(skyColor, groundColor, intensity) {
+  Light.call(this, skyColor, intensity);
 
-	Light.call( this, skyColor, intensity );
+  this.type = "HemisphereLight";
 
-	this.type = 'HemisphereLight';
+  this.castShadow = undefined;
 
-	this.castShadow = undefined;
+  this.position.copy(Object3D.DefaultUp);
+  this.updateMatrix();
 
-	this.position.copy( Object3D.DefaultUp );
-	this.updateMatrix();
-
-	this.groundColor = new Color( groundColor );
-
+  this.groundColor = new Color(groundColor);
 }
 
-HemisphereLight.prototype = Object.assign( Object.create( Light.prototype ), {
+HemisphereLight.prototype = Object.assign(Object.create(Light.prototype), {
+  constructor: HemisphereLight,
 
-	constructor: HemisphereLight,
+  isHemisphereLight: true,
 
-	isHemisphereLight: true,
+  copy: function(source) {
+    Light.prototype.copy.call(this, source);
 
-	copy: function ( source ) {
+    this.groundColor.copy(source.groundColor);
 
-		Light.prototype.copy.call( this, source );
-
-		this.groundColor.copy( source.groundColor );
-
-		return this;
-
-	}
-
-} );
-
+    return this;
+  }
+});
 
 export { HemisphereLight };
