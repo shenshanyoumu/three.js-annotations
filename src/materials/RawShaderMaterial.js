@@ -1,21 +1,21 @@
-import { ShaderMaterial } from './ShaderMaterial.js';
+import { ShaderMaterial } from "./ShaderMaterial.js";
 
 /**
  * @author mrdoob / http://mrdoob.com/
  */
+/**
+ * 原始的着色器材质
+ * @param {*} parameters
+ */
+function RawShaderMaterial(parameters) {
+  ShaderMaterial.call(this, parameters);
 
-function RawShaderMaterial( parameters ) {
-
-	ShaderMaterial.call( this, parameters );
-
-	this.type = 'RawShaderMaterial';
-
+  this.type = "RawShaderMaterial";
 }
 
-RawShaderMaterial.prototype = Object.create( ShaderMaterial.prototype );
+RawShaderMaterial.prototype = Object.create(ShaderMaterial.prototype);
 RawShaderMaterial.prototype.constructor = RawShaderMaterial;
 
 RawShaderMaterial.prototype.isRawShaderMaterial = true;
-
 
 export { RawShaderMaterial };

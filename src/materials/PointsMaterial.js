@@ -1,5 +1,5 @@
-import { Material } from './Material.js';
-import { Color } from '../math/Color.js';
+import { Material } from "./Material.js";
+import { Color } from "../math/Color.js";
 
 /**
  * @author mrdoob / http://mrdoob.com/
@@ -15,44 +15,43 @@ import { Color } from '../math/Color.js';
  * }
  */
 
-function PointsMaterial( parameters ) {
+/**
+ * 点材质常用于点云系统
+ * @param {*} parameters
+ */
+function PointsMaterial(parameters) {
+  Material.call(this);
 
-	Material.call( this );
+  this.type = "PointsMaterial";
 
-	this.type = 'PointsMaterial';
+  this.color = new Color(0xffffff);
 
-	this.color = new Color( 0xffffff );
+  this.map = null;
 
-	this.map = null;
+  this.size = 1;
+  this.sizeAttenuation = true;
 
-	this.size = 1;
-	this.sizeAttenuation = true;
+  this.lights = false;
 
-	this.lights = false;
-
-	this.setValues( parameters );
-
+  this.setValues(parameters);
 }
 
-PointsMaterial.prototype = Object.create( Material.prototype );
+PointsMaterial.prototype = Object.create(Material.prototype);
 PointsMaterial.prototype.constructor = PointsMaterial;
 
 PointsMaterial.prototype.isPointsMaterial = true;
 
-PointsMaterial.prototype.copy = function ( source ) {
+PointsMaterial.prototype.copy = function(source) {
+  Material.prototype.copy.call(this, source);
 
-	Material.prototype.copy.call( this, source );
+  this.color.copy(source.color);
 
-	this.color.copy( source.color );
+  this.map = source.map;
 
-	this.map = source.map;
+  this.size = source.size;
+  this.sizeAttenuation = source.sizeAttenuation;
 
-	this.size = source.size;
-	this.sizeAttenuation = source.sizeAttenuation;
-
-	return this;
-
+  return this;
 };
-
 
 export { PointsMaterial };

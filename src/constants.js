@@ -1,5 +1,5 @@
 // 版本号
-export var REVISION = '91';
+export var REVISION = "91";
 // 内置的鼠标行为按钮
 export var MOUSE = { LEFT: 0, MIDDLE: 1, RIGHT: 2 };
 
@@ -9,7 +9,7 @@ export var CullFaceBack = 1;
 export var CullFaceFront = 2;
 export var CullFaceFrontBack = 3;
 
-// CW表示clickwise，顺时针；而CCW自然表示逆时针。
+// CW表示clockwise，顺时针；而CCW自然表示逆时针。
 // 所以下面两个表示确定多边形正面的方式
 export var FrontFaceDirectionCW = 0;
 export var FrontFaceDirectionCCW = 1;
@@ -24,7 +24,7 @@ export var FrontSide = 0;
 export var BackSide = 1;
 export var DoubleSide = 2;
 
-// 三角面着色类型
+// 三角面着色类型，所谓flatshading表示整个三角面等色着色
 export var FlatShading = 1;
 export var SmoothShading = 2;
 
@@ -41,7 +41,7 @@ export var SubtractiveBlending = 3;
 export var MultiplyBlending = 4;
 export var CustomBlending = 5;
 
-
+// 用于解析源代码运算结构的助记符
 export var AddEquation = 100;
 export var SubtractEquation = 101;
 export var ReverseSubtractEquation = 102;
