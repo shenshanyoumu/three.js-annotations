@@ -4,78 +4,85 @@
  * @author WestLangley / http://github.com/WestLangley
  */
 
-import { Object3D } from '../core/Object3D.js';
-import { Line } from '../objects/Line.js';
-import { LineBasicMaterial } from '../materials/LineBasicMaterial.js';
-import { BufferGeometry } from '../core/BufferGeometry.js';
-import { BufferAttribute } from '../core/BufferAttribute.js';
+import { Object3D } from "../core/Object3D.js";
+import { Line } from "../objects/Line.js";
+import { LineBasicMaterial } from "../materials/LineBasicMaterial.js";
+import { BufferGeometry } from "../core/BufferGeometry.js";
+import { BufferAttribute } from "../core/BufferAttribute.js";
 
-function RectAreaLightHelper( light, color ) {
+/**
+ * 平面光源辅助线
+ * @param {*} light 光源对象
+ * @param {*} color 光线可视化颜色
+ */
+function RectAreaLightHelper(light, color) {
+  Object3D.call(this);
 
-	Object3D.call( this );
+  this.light = light;
+  this.light.updateMatrixWorld();
 
-	this.light = light;
-	this.light.updateMatrixWorld();
+  this.matrix = light.matrixWorld;
+  this.matrixAutoUpdate = false;
 
-	this.matrix = light.matrixWorld;
-	this.matrixAutoUpdate = false;
+  this.color = color;
 
-	this.color = color;
+  var material = new LineBasicMaterial({ fog: false });
 
-	var material = new LineBasicMaterial( { fog: false } );
+  var geometry = new BufferGeometry();
 
-	var geometry = new BufferGeometry();
+  geometry.addAttribute(
+    "position",
+    new BufferAttribute(new Float32Array(5 * 3), 3)
+  );
 
-	geometry.addAttribute( 'position', new BufferAttribute( new Float32Array( 5 * 3 ), 3 ) );
+  this.line = new Line(geometry, material);
+  this.add(this.line);
 
-	this.line = new Line( geometry, material );
-	this.add( this.line );
-
-
-	this.update();
-
+  this.update();
 }
 
-RectAreaLightHelper.prototype = Object.create( Object3D.prototype );
+RectAreaLightHelper.prototype = Object.create(Object3D.prototype);
 RectAreaLightHelper.prototype.constructor = RectAreaLightHelper;
 
-RectAreaLightHelper.prototype.dispose = function () {
-
-	this.children[ 0 ].geometry.dispose();
-	this.children[ 0 ].material.dispose();
-
+RectAreaLightHelper.prototype.dispose = function() {
+  this.children[0].geometry.dispose();
+  this.children[0].material.dispose();
 };
 
-RectAreaLightHelper.prototype.update = function () {
+RectAreaLightHelper.prototype.update = function() {
+  // calculate new dimensions of the helper
 
-	// calculate new dimensions of the helper
+  var hx = this.light.width * 0.5;
+  var hy = this.light.height * 0.5;
 
-	var hx = this.light.width * 0.5;
-	var hy = this.light.height * 0.5;
+  var position = this.line.geometry.attributes.position;
+  var array = position.array;
 
-	var position = this.line.geometry.attributes.position;
-	var array = position.array;
+  // update vertices
 
-	// update vertices
+  array[0] = hx;
+  array[1] = -hy;
+  array[2] = 0;
+  array[3] = hx;
+  array[4] = hy;
+  array[5] = 0;
+  array[6] = -hx;
+  array[7] = hy;
+  array[8] = 0;
+  array[9] = -hx;
+  array[10] = -hy;
+  array[11] = 0;
+  array[12] = hx;
+  array[13] = -hy;
+  array[14] = 0;
 
-	array[ 0 ] = hx; array[ 1 ] = - hy; array[ 2 ] = 0;
-	array[ 3 ] = hx; array[ 4 ] = hy; array[ 5 ] = 0;
-	array[ 6 ] = - hx; array[ 7 ] = hy; array[ 8 ] = 0;
-	array[ 9 ] = - hx; array[ 10 ] = - hy; array[ 11 ] = 0;
-	array[ 12 ] = hx; array[ 13 ] = - hy; array[ 14 ] = 0;
+  position.needsUpdate = true;
 
-	position.needsUpdate = true;
-
-	if ( this.color !== undefined ) {
-
-		this.line.material.color.set( this.color );
-
-	} else {
-
-		this.line.material.color.copy( this.light.color );
-
-	}
-
+  if (this.color !== undefined) {
+    this.line.material.color.set(this.color);
+  } else {
+    this.line.material.color.copy(this.light.color);
+  }
 };
 
 export { RectAreaLightHelper };

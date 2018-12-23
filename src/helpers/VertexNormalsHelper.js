@@ -3,151 +3,151 @@
  * @author WestLangley / http://github.com/WestLangley
  */
 
-import { Matrix3 } from '../math/Matrix3.js';
-import { Vector3 } from '../math/Vector3.js';
-import { LineSegments } from '../objects/LineSegments.js';
-import { LineBasicMaterial } from '../materials/LineBasicMaterial.js';
-import { Float32BufferAttribute } from '../core/BufferAttribute.js';
-import { BufferGeometry } from '../core/BufferGeometry.js';
+import { Matrix3 } from "../math/Matrix3.js";
+import { Vector3 } from "../math/Vector3.js";
+import { LineSegments } from "../objects/LineSegments.js";
+import { LineBasicMaterial } from "../materials/LineBasicMaterial.js";
+import { Float32BufferAttribute } from "../core/BufferAttribute.js";
+import { BufferGeometry } from "../core/BufferGeometry.js";
 
-function VertexNormalsHelper( object, size, hex, linewidth ) {
+/**
+ * 模型顶点多个法向量辅助线，由于模型中每个顶点被多个平面共享，因此存在多个法向量
+ * @param {*} object 模型对象
+ * @param {*} size 法向量的长度
+ * @param {*} hex 法向量线段颜色
+ * @param {*} linewidth 法向量线段宽度
+ */
+function VertexNormalsHelper(object, size, hex, linewidth) {
+  this.object = object;
 
-	this.object = object;
+  this.size = size !== undefined ? size : 1;
 
-	this.size = ( size !== undefined ) ? size : 1;
+  var color = hex !== undefined ? hex : 0xff0000;
 
-	var color = ( hex !== undefined ) ? hex : 0xff0000;
+  var width = linewidth !== undefined ? linewidth : 1;
 
-	var width = ( linewidth !== undefined ) ? linewidth : 1;
+  //
 
-	//
+  var nNormals = 0;
 
-	var nNormals = 0;
+  var objGeometry = this.object.geometry;
 
-	var objGeometry = this.object.geometry;
+  if (objGeometry && objGeometry.isGeometry) {
+    nNormals = objGeometry.faces.length * 3;
+  } else if (objGeometry && objGeometry.isBufferGeometry) {
+    nNormals = objGeometry.attributes.normal.count;
+  }
 
-	if ( objGeometry && objGeometry.isGeometry ) {
+  //
 
-		nNormals = objGeometry.faces.length * 3;
+  var geometry = new BufferGeometry();
 
-	} else if ( objGeometry && objGeometry.isBufferGeometry ) {
+  var positions = new Float32BufferAttribute(nNormals * 2 * 3, 3);
 
-		nNormals = objGeometry.attributes.normal.count;
+  geometry.addAttribute("position", positions);
 
-	}
+  LineSegments.call(
+    this,
+    geometry,
+    new LineBasicMaterial({ color: color, linewidth: width })
+  );
 
-	//
+  //
 
-	var geometry = new BufferGeometry();
+  this.matrixAutoUpdate = false;
 
-	var positions = new Float32BufferAttribute( nNormals * 2 * 3, 3 );
-
-	geometry.addAttribute( 'position', positions );
-
-	LineSegments.call( this, geometry, new LineBasicMaterial( { color: color, linewidth: width } ) );
-
-	//
-
-	this.matrixAutoUpdate = false;
-
-	this.update();
-
+  this.update();
 }
 
-VertexNormalsHelper.prototype = Object.create( LineSegments.prototype );
+VertexNormalsHelper.prototype = Object.create(LineSegments.prototype);
 VertexNormalsHelper.prototype.constructor = VertexNormalsHelper;
 
-VertexNormalsHelper.prototype.update = ( function () {
+VertexNormalsHelper.prototype.update = (function() {
+  var v1 = new Vector3();
+  var v2 = new Vector3();
+  var normalMatrix = new Matrix3();
 
-	var v1 = new Vector3();
-	var v2 = new Vector3();
-	var normalMatrix = new Matrix3();
+  return function update() {
+    var keys = ["a", "b", "c"];
 
-	return function update() {
+    this.object.updateMatrixWorld(true);
 
-		var keys = [ 'a', 'b', 'c' ];
+    // 得到模型在世界坐标系中的法向量矩阵
+    normalMatrix.getNormalMatrix(this.object.matrixWorld);
 
-		this.object.updateMatrixWorld( true );
+    var matrixWorld = this.object.matrixWorld;
 
-		normalMatrix.getNormalMatrix( this.object.matrixWorld );
+    var position = this.geometry.attributes.position;
 
-		var matrixWorld = this.object.matrixWorld;
+    //
 
-		var position = this.geometry.attributes.position;
+    var objGeometry = this.object.geometry;
 
-		//
+    if (objGeometry && objGeometry.isGeometry) {
+      var vertices = objGeometry.vertices;
 
-		var objGeometry = this.object.geometry;
+      var faces = objGeometry.faces;
 
-		if ( objGeometry && objGeometry.isGeometry ) {
+      var idx = 0;
 
-			var vertices = objGeometry.vertices;
+      for (var i = 0, l = faces.length; i < l; i++) {
+        var face = faces[i];
 
-			var faces = objGeometry.faces;
+        for (var j = 0, jl = face.vertexNormals.length; j < jl; j++) {
+          var vertex = vertices[face[keys[j]]];
 
-			var idx = 0;
+          var normal = face.vertexNormals[j];
 
-			for ( var i = 0, l = faces.length; i < l; i ++ ) {
+          v1.copy(vertex).applyMatrix4(matrixWorld);
 
-				var face = faces[ i ];
+          v2.copy(normal)
+            .applyMatrix3(normalMatrix)
+            .normalize()
+            .multiplyScalar(this.size)
+            .add(v1);
 
-				for ( var j = 0, jl = face.vertexNormals.length; j < jl; j ++ ) {
+          position.setXYZ(idx, v1.x, v1.y, v1.z);
 
-					var vertex = vertices[ face[ keys[ j ] ] ];
+          idx = idx + 1;
 
-					var normal = face.vertexNormals[ j ];
+          position.setXYZ(idx, v2.x, v2.y, v2.z);
 
-					v1.copy( vertex ).applyMatrix4( matrixWorld );
+          idx = idx + 1;
+        }
+      }
+    } else if (objGeometry && objGeometry.isBufferGeometry) {
+      var objPos = objGeometry.attributes.position;
 
-					v2.copy( normal ).applyMatrix3( normalMatrix ).normalize().multiplyScalar( this.size ).add( v1 );
+      var objNorm = objGeometry.attributes.normal;
 
-					position.setXYZ( idx, v1.x, v1.y, v1.z );
+      var idx = 0;
 
-					idx = idx + 1;
+      // for simplicity, ignore index and drawcalls, and render every normal
 
-					position.setXYZ( idx, v2.x, v2.y, v2.z );
+      for (var j = 0, jl = objPos.count; j < jl; j++) {
+        v1.set(objPos.getX(j), objPos.getY(j), objPos.getZ(j)).applyMatrix4(
+          matrixWorld
+        );
 
-					idx = idx + 1;
+        v2.set(objNorm.getX(j), objNorm.getY(j), objNorm.getZ(j));
 
-				}
+        v2.applyMatrix3(normalMatrix)
+          .normalize()
+          .multiplyScalar(this.size)
+          .add(v1);
 
-			}
+        position.setXYZ(idx, v1.x, v1.y, v1.z);
 
-		} else if ( objGeometry && objGeometry.isBufferGeometry ) {
+        idx = idx + 1;
 
-			var objPos = objGeometry.attributes.position;
+        position.setXYZ(idx, v2.x, v2.y, v2.z);
 
-			var objNorm = objGeometry.attributes.normal;
+        idx = idx + 1;
+      }
+    }
 
-			var idx = 0;
-
-			// for simplicity, ignore index and drawcalls, and render every normal
-
-			for ( var j = 0, jl = objPos.count; j < jl; j ++ ) {
-
-				v1.set( objPos.getX( j ), objPos.getY( j ), objPos.getZ( j ) ).applyMatrix4( matrixWorld );
-
-				v2.set( objNorm.getX( j ), objNorm.getY( j ), objNorm.getZ( j ) );
-
-				v2.applyMatrix3( normalMatrix ).normalize().multiplyScalar( this.size ).add( v1 );
-
-				position.setXYZ( idx, v1.x, v1.y, v1.z );
-
-				idx = idx + 1;
-
-				position.setXYZ( idx, v2.x, v2.y, v2.z );
-
-				idx = idx + 1;
-
-			}
-
-		}
-
-		position.needsUpdate = true;
-
-	};
-
-}() );
-
+    position.needsUpdate = true;
+  };
+})();
 
 export { VertexNormalsHelper };
