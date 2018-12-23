@@ -22,6 +22,10 @@ import { UniformsUtils } from "../renderers/shaders/UniformsUtils.js";
  * }
  */
 
+/**
+ * 基于着色器来实现模型表面材质效果，下面的GLSL代码片段很简单
+ * @param {*} parameters
+ */
 function ShaderMaterial(parameters) {
   Material.call(this);
 
