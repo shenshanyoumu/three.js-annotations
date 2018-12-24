@@ -1,83 +1,76 @@
 /**
- * @author Mugen87 / https://github.com/Mugen87
+ *
+ * @param {*} gl WebGL渲染上下文对象
  */
+function WebGLInfo(gl) {
+  // 存储模型的几何结构和纹理属性
+  var memory = {
+    geometries: 0,
+    textures: 0
+  };
 
-function WebGLInfo( gl ) {
+  // 渲染器对几何模型的三角化处理，以及点线处理
+  var render = {
+    frame: 0,
+    calls: 0,
+    triangles: 0,
+    points: 0,
+    lines: 0
+  };
 
-	var memory = {
-		geometries: 0,
-		textures: 0
-	};
+  function update(count, mode, instanceCount) {
+    instanceCount = instanceCount || 1;
 
-	var render = {
-		frame: 0,
-		calls: 0,
-		triangles: 0,
-		points: 0,
-		lines: 0
-	};
+    render.calls++;
 
-	function update( count, mode, instanceCount ) {
+    switch (mode) {
+      case gl.TRIANGLES:
+        render.triangles += instanceCount * (count / 3);
+        break;
 
-		instanceCount = instanceCount || 1;
+      case gl.TRIANGLE_STRIP:
+      case gl.TRIANGLE_FAN:
+        render.triangles += instanceCount * (count - 2);
+        break;
 
-		render.calls ++;
+      case gl.LINES:
+        render.lines += instanceCount * (count / 2);
+        break;
 
-		switch ( mode ) {
+      case gl.LINE_STRIP:
+        render.lines += instanceCount * (count - 1);
+        break;
 
-			case gl.TRIANGLES:
-				render.triangles += instanceCount * ( count / 3 );
-				break;
+      case gl.LINE_LOOP:
+        render.lines += instanceCount * count;
+        break;
 
-			case gl.TRIANGLE_STRIP:
-			case gl.TRIANGLE_FAN:
-				render.triangles += instanceCount * ( count - 2 );
-				break;
+      case gl.POINTS:
+        render.points += instanceCount * count;
+        break;
 
-			case gl.LINES:
-				render.lines += instanceCount * ( count / 2 );
-				break;
+      default:
+        console.error("THREE.WebGLInfo: Unknown draw mode:", mode);
+        break;
+    }
+  }
 
-			case gl.LINE_STRIP:
-				render.lines += instanceCount * ( count - 1 );
-				break;
+  function reset() {
+    render.frame++;
+    render.calls = 0;
+    render.triangles = 0;
+    render.points = 0;
+    render.lines = 0;
+  }
 
-			case gl.LINE_LOOP:
-				render.lines += instanceCount * count;
-				break;
-
-			case gl.POINTS:
-				render.points += instanceCount * count;
-				break;
-
-			default:
-				console.error( 'THREE.WebGLInfo: Unknown draw mode:', mode );
-				break;
-
-		}
-
-	}
-
-	function reset() {
-
-		render.frame ++;
-		render.calls = 0;
-		render.triangles = 0;
-		render.points = 0;
-		render.lines = 0;
-
-	}
-
-	return {
-		memory: memory,
-		render: render,
-		programs: null,
-		autoReset: true,
-		reset: reset,
-		update: update
-	};
-
+  return {
+    memory: memory,
+    render: render,
+    programs: null,
+    autoReset: true,
+    reset: reset,
+    update: update
+  };
 }
-
 
 export { WebGLInfo };

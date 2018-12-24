@@ -2,194 +2,156 @@
  * @author mrdoob / http://mrdoob.com/
  */
 
-import { Uint16BufferAttribute, Uint32BufferAttribute } from '../../core/BufferAttribute.js';
-import { BufferGeometry } from '../../core/BufferGeometry.js';
-import { arrayMax } from '../../utils.js';
+import {
+  Uint16BufferAttribute,
+  Uint32BufferAttribute
+} from "../../core/BufferAttribute.js";
+import { BufferGeometry } from "../../core/BufferGeometry.js";
+import { arrayMax } from "../../utils.js";
 
-function WebGLGeometries( gl, attributes, info ) {
+/**
+ * 基于WebGL构建几何模型
+ * @param {*} gl 渲染上下文对象
+ * @param {*} attributes 构建几何模型的属性数据
+ * @param {*} info 描述几何模型的其他信息
+ */
+function WebGLGeometries(gl, attributes, info) {
+  var geometries = {};
+  var wireframeAttributes = {};
 
-	var geometries = {};
-	var wireframeAttributes = {};
+  function onGeometryDispose(event) {
+    var geometry = event.target;
+    var buffergeometry = geometries[geometry.id];
 
-	function onGeometryDispose( event ) {
+    if (buffergeometry.index !== null) {
+      attributes.remove(buffergeometry.index);
+    }
 
-		var geometry = event.target;
-		var buffergeometry = geometries[ geometry.id ];
+    for (var name in buffergeometry.attributes) {
+      attributes.remove(buffergeometry.attributes[name]);
+    }
 
-		if ( buffergeometry.index !== null ) {
+    geometry.removeEventListener("dispose", onGeometryDispose);
 
-			attributes.remove( buffergeometry.index );
+    delete geometries[geometry.id];
 
-		}
+    // TODO Remove duplicate code
+    var attribute = wireframeAttributes[geometry.id];
 
-		for ( var name in buffergeometry.attributes ) {
+    if (attribute) {
+      attributes.remove(attribute);
+      delete wireframeAttributes[geometry.id];
+    }
 
-			attributes.remove( buffergeometry.attributes[ name ] );
+    attribute = wireframeAttributes[buffergeometry.id];
 
-		}
+    if (attribute) {
+      attributes.remove(attribute);
+      delete wireframeAttributes[buffergeometry.id];
+    }
 
-		geometry.removeEventListener( 'dispose', onGeometryDispose );
+    info.memory.geometries--;
+  }
 
-		delete geometries[ geometry.id ];
+  function get(object, geometry) {
+    var buffergeometry = geometries[geometry.id];
 
-		// TODO Remove duplicate code
+    if (buffergeometry) return buffergeometry;
 
-		var attribute = wireframeAttributes[ geometry.id ];
+    geometry.addEventListener("dispose", onGeometryDispose);
 
-		if ( attribute ) {
+    if (geometry.isBufferGeometry) {
+      buffergeometry = geometry;
+    } else if (geometry.isGeometry) {
+      if (geometry._bufferGeometry === undefined) {
+        geometry._bufferGeometry = new BufferGeometry().setFromObject(object);
+      }
 
-			attributes.remove( attribute );
-			delete wireframeAttributes[ geometry.id ];
+      buffergeometry = geometry._bufferGeometry;
+    }
 
-		}
+    geometries[geometry.id] = buffergeometry;
 
-		attribute = wireframeAttributes[ buffergeometry.id ];
+    info.memory.geometries++;
 
-		if ( attribute ) {
+    return buffergeometry;
+  }
 
-			attributes.remove( attribute );
-			delete wireframeAttributes[ buffergeometry.id ];
+  function update(geometry) {
+    var index = geometry.index;
+    var geometryAttributes = geometry.attributes;
 
-		}
+    if (index !== null) {
+      attributes.update(index, gl.ELEMENT_ARRAY_BUFFER);
+    }
 
-		//
+    for (var name in geometryAttributes) {
+      attributes.update(geometryAttributes[name], gl.ARRAY_BUFFER);
+    }
 
-		info.memory.geometries --;
+    // 模型在发生形变动画时的一些属性
+    var morphAttributes = geometry.morphAttributes;
 
-	}
+    for (var name in morphAttributes) {
+      var array = morphAttributes[name];
 
-	function get( object, geometry ) {
+      for (var i = 0, l = array.length; i < l; i++) {
+        attributes.update(array[i], gl.ARRAY_BUFFER);
+      }
+    }
+  }
 
-		var buffergeometry = geometries[ geometry.id ];
+  //获得几何模型的线框属性
+  function getWireframeAttribute(geometry) {
+    var attribute = wireframeAttributes[geometry.id];
 
-		if ( buffergeometry ) return buffergeometry;
+    if (attribute) {
+      return attribute;
+    }
 
-		geometry.addEventListener( 'dispose', onGeometryDispose );
+    var indices = [];
 
-		if ( geometry.isBufferGeometry ) {
+    var geometryIndex = geometry.index;
+    var geometryAttributes = geometry.attributes;
 
-			buffergeometry = geometry;
+    if (geometryIndex !== null) {
+      var array = geometryIndex.array;
 
-		} else if ( geometry.isGeometry ) {
+      for (var i = 0, l = array.length; i < l; i += 3) {
+        var a = array[i + 0];
+        var b = array[i + 1];
+        var c = array[i + 2];
 
-			if ( geometry._bufferGeometry === undefined ) {
+        indices.push(a, b, b, c, c, a);
+      }
+    } else {
+      var array = geometryAttributes.position.array;
 
-				geometry._bufferGeometry = new BufferGeometry().setFromObject( object );
+      for (var i = 0, l = array.length / 3 - 1; i < l; i += 3) {
+        var a = i + 0;
+        var b = i + 1;
+        var c = i + 2;
 
-			}
+        indices.push(a, b, b, c, c, a);
+      }
+    }
 
-			buffergeometry = geometry._bufferGeometry;
+    attribute = new (arrayMax(indices) > 65535
+      ? Uint32BufferAttribute
+      : Uint16BufferAttribute)(indices, 1);
 
-		}
+    attributes.update(attribute, gl.ELEMENT_ARRAY_BUFFER);
 
-		geometries[ geometry.id ] = buffergeometry;
+    wireframeAttributes[geometry.id] = attribute;
 
-		info.memory.geometries ++;
+    return attribute;
+  }
 
-		return buffergeometry;
-
-	}
-
-	function update( geometry ) {
-
-		var index = geometry.index;
-		var geometryAttributes = geometry.attributes;
-
-		if ( index !== null ) {
-
-			attributes.update( index, gl.ELEMENT_ARRAY_BUFFER );
-
-		}
-
-		for ( var name in geometryAttributes ) {
-
-			attributes.update( geometryAttributes[ name ], gl.ARRAY_BUFFER );
-
-		}
-
-		// morph targets
-
-		var morphAttributes = geometry.morphAttributes;
-
-		for ( var name in morphAttributes ) {
-
-			var array = morphAttributes[ name ];
-
-			for ( var i = 0, l = array.length; i < l; i ++ ) {
-
-				attributes.update( array[ i ], gl.ARRAY_BUFFER );
-
-			}
-
-		}
-
-	}
-
-	function getWireframeAttribute( geometry ) {
-
-		var attribute = wireframeAttributes[ geometry.id ];
-
-		if ( attribute ) return attribute;
-
-		var indices = [];
-
-		var geometryIndex = geometry.index;
-		var geometryAttributes = geometry.attributes;
-
-		// console.time( 'wireframe' );
-
-		if ( geometryIndex !== null ) {
-
-			var array = geometryIndex.array;
-
-			for ( var i = 0, l = array.length; i < l; i += 3 ) {
-
-				var a = array[ i + 0 ];
-				var b = array[ i + 1 ];
-				var c = array[ i + 2 ];
-
-				indices.push( a, b, b, c, c, a );
-
-			}
-
-		} else {
-
-			var array = geometryAttributes.position.array;
-
-			for ( var i = 0, l = ( array.length / 3 ) - 1; i < l; i += 3 ) {
-
-				var a = i + 0;
-				var b = i + 1;
-				var c = i + 2;
-
-				indices.push( a, b, b, c, c, a );
-
-			}
-
-		}
-
-		// console.timeEnd( 'wireframe' );
-
-		attribute = new ( arrayMax( indices ) > 65535 ? Uint32BufferAttribute : Uint16BufferAttribute )( indices, 1 );
-
-		attributes.update( attribute, gl.ELEMENT_ARRAY_BUFFER );
-
-		wireframeAttributes[ geometry.id ] = attribute;
-
-		return attribute;
-
-	}
-
-	return {
-
-		get: get,
-		update: update,
-
-		getWireframeAttribute: getWireframeAttribute
-
-	};
-
+  return {
+    get: get,
+    update: update,
+    getWireframeAttribute: getWireframeAttribute
+  };
 }
-
 
 export { WebGLGeometries };

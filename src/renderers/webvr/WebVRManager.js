@@ -2,245 +2,223 @@
  * @author mrdoob / http://mrdoob.com/
  */
 
-import { Matrix4 } from '../../math/Matrix4.js';
-import { Vector4 } from '../../math/Vector4.js';
-import { Vector3 } from '../../math/Vector3.js';
-import { Quaternion } from '../../math/Quaternion.js';
-import { ArrayCamera } from '../../cameras/ArrayCamera.js';
-import { PerspectiveCamera } from '../../cameras/PerspectiveCamera.js';
+import { Matrix4 } from "../../math/Matrix4.js";
+import { Vector4 } from "../../math/Vector4.js";
+import { Vector3 } from "../../math/Vector3.js";
+import { Quaternion } from "../../math/Quaternion.js";
+import { ArrayCamera } from "../../cameras/ArrayCamera.js";
+import { PerspectiveCamera } from "../../cameras/PerspectiveCamera.js";
+
+/**
+ * Virtual Reality效果的渲染
+ * @param {*} renderer 表示传入的渲染上下文对象
+ */
+function WebVRManager(renderer) {
+  var scope = this;
+
+  var device = null;
+
+  // 当前帧数据
+  var frameData = null;
+
+  // 目标姿态数据
+  var poseTarget = null;
+
+  // 变换矩阵
+  var standingMatrix = new Matrix4();
+  var standingMatrixInverse = new Matrix4();
+
+  // 判定浏览器是否原生支持VR相关属性
+  if (typeof window !== "undefined" && "VRFrameData" in window) {
+    frameData = new window.VRFrameData();
+  }
+
+  // 之所以进行矩阵逆运算，其实道理很简单。就是在VR中需要将屏幕中的输入转换为3D空间中的运动
+  var matrixWorldInverse = new Matrix4();
+
+  var tempQuaternion = new Quaternion();
+  var tempPosition = new Vector3();
+
+  // 基于两台透视相机和一台阵列相机构成VR效果
+  var cameraL = new PerspectiveCamera();
+  cameraL.bounds = new Vector4(0.0, 0.0, 0.5, 1.0);
+  cameraL.layers.enable(1);
+
+  var cameraR = new PerspectiveCamera();
+  cameraR.bounds = new Vector4(0.5, 0.0, 0.5, 1.0);
+  cameraR.layers.enable(2);
+
+  var cameraVR = new ArrayCamera([cameraL, cameraR]);
+  cameraVR.layers.enable(1);
+  cameraVR.layers.enable(2);
+
+  //
+  var currentSize, currentPixelRatio;
+
+  function onVRDisplayPresentChange() {
+    if (device !== null && device.isPresenting) {
+      var eyeParameters = device.getEyeParameters("left");
+      var renderWidth = eyeParameters.renderWidth;
+      var renderHeight = eyeParameters.renderHeight;
+
+      currentPixelRatio = renderer.getPixelRatio();
+      currentSize = renderer.getSize();
+
+      renderer.setDrawingBufferSize(renderWidth * 2, renderHeight, 1);
+    } else if (scope.enabled) {
+      renderer.setDrawingBufferSize(
+        currentSize.width,
+        currentSize.height,
+        currentPixelRatio
+      );
+    }
+  }
 
-function WebVRManager( renderer ) {
+  if (typeof window !== "undefined") {
+    window.addEventListener(
+      "vrdisplaypresentchange",
+      onVRDisplayPresentChange,
+      false
+    );
+  }
 
-	var scope = this;
+  this.enabled = false;
+  this.userHeight = 1.6;
 
-	var device = null;
-	var frameData = null;
+  // 具有VR特性的硬件设备
+  this.getDevice = function() {
+    return device;
+  };
 
-	var poseTarget = null;
+  this.setDevice = function(value) {
+    if (value !== undefined) device = value;
+  };
 
-	var standingMatrix = new Matrix4();
-	var standingMatrixInverse = new Matrix4();
+  this.setPoseTarget = function(object) {
+    if (object !== undefined) poseTarget = object;
+  };
 
-	if ( typeof window !== 'undefined' && 'VRFrameData' in window ) {
+  this.getCamera = function(camera) {
+    if (device === null) return camera;
 
-		frameData = new window.VRFrameData();
+    device.depthNear = camera.near;
+    device.depthFar = camera.far;
 
-	}
+    device.getFrameData(frameData);
 
-	var matrixWorldInverse = new Matrix4();
-	var tempQuaternion = new Quaternion();
-	var tempPosition = new Vector3();
+    var stageParameters = device.stageParameters;
 
-	var cameraL = new PerspectiveCamera();
-	cameraL.bounds = new Vector4( 0.0, 0.0, 0.5, 1.0 );
-	cameraL.layers.enable( 1 );
+    if (stageParameters) {
+      standingMatrix.fromArray(stageParameters.sittingToStandingTransform);
+    } else {
+      standingMatrix.makeTranslation(0, scope.userHeight, 0);
+    }
 
-	var cameraR = new PerspectiveCamera();
-	cameraR.bounds = new Vector4( 0.5, 0.0, 0.5, 1.0 );
-	cameraR.layers.enable( 2 );
+    var pose = frameData.pose;
+    var poseObject = poseTarget !== null ? poseTarget : camera;
 
-	var cameraVR = new ArrayCamera( [ cameraL, cameraR ] );
-	cameraVR.layers.enable( 1 );
-	cameraVR.layers.enable( 2 );
+    // We want to manipulate poseObject by its position and quaternion components since users may rely on them.
+    poseObject.matrix.copy(standingMatrix);
+    poseObject.matrix.decompose(
+      poseObject.position,
+      poseObject.quaternion,
+      poseObject.scale
+    );
 
-	//
+    if (pose.orientation !== null) {
+      tempQuaternion.fromArray(pose.orientation);
+      poseObject.quaternion.multiply(tempQuaternion);
+    }
 
-	var currentSize, currentPixelRatio;
+    if (pose.position !== null) {
+      tempQuaternion.setFromRotationMatrix(standingMatrix);
+      tempPosition.fromArray(pose.position);
+      tempPosition.applyQuaternion(tempQuaternion);
+      poseObject.position.add(tempPosition);
+    }
 
-	function onVRDisplayPresentChange() {
+    poseObject.updateMatrixWorld();
 
-		if ( device !== null && device.isPresenting ) {
+    if (device.isPresenting === false) return camera;
 
-			var eyeParameters = device.getEyeParameters( 'left' );
-			var renderWidth = eyeParameters.renderWidth;
-			var renderHeight = eyeParameters.renderHeight;
+    //
 
-			currentPixelRatio = renderer.getPixelRatio();
-			currentSize = renderer.getSize();
+    cameraL.near = camera.near;
+    cameraR.near = camera.near;
 
-			renderer.setDrawingBufferSize( renderWidth * 2, renderHeight, 1 );
+    cameraL.far = camera.far;
+    cameraR.far = camera.far;
 
-		} else if ( scope.enabled ) {
+    cameraVR.matrixWorld.copy(camera.matrixWorld);
+    cameraVR.matrixWorldInverse.copy(camera.matrixWorldInverse);
 
-			renderer.setDrawingBufferSize( currentSize.width, currentSize.height, currentPixelRatio );
+    cameraL.matrixWorldInverse.fromArray(frameData.leftViewMatrix);
+    cameraR.matrixWorldInverse.fromArray(frameData.rightViewMatrix);
 
-		}
+    // TODO (mrdoob) Double check this code
 
-	}
+    standingMatrixInverse.getInverse(standingMatrix);
 
-	if ( typeof window !== 'undefined' ) {
+    cameraL.matrixWorldInverse.multiply(standingMatrixInverse);
+    cameraR.matrixWorldInverse.multiply(standingMatrixInverse);
 
-		window.addEventListener( 'vrdisplaypresentchange', onVRDisplayPresentChange, false );
+    var parent = poseObject.parent;
 
-	}
+    if (parent !== null) {
+      matrixWorldInverse.getInverse(parent.matrixWorld);
 
-	//
+      cameraL.matrixWorldInverse.multiply(matrixWorldInverse);
+      cameraR.matrixWorldInverse.multiply(matrixWorldInverse);
+    }
 
-	this.enabled = false;
-	this.userHeight = 1.6;
+    // envMap and Mirror needs camera.matrixWorld
 
-	this.getDevice = function () {
+    cameraL.matrixWorld.getInverse(cameraL.matrixWorldInverse);
+    cameraR.matrixWorld.getInverse(cameraR.matrixWorldInverse);
 
-		return device;
+    cameraL.projectionMatrix.fromArray(frameData.leftProjectionMatrix);
+    cameraR.projectionMatrix.fromArray(frameData.rightProjectionMatrix);
 
-	};
+    // HACK (mrdoob)
+    // https://github.com/w3c/webvr/issues/203
 
-	this.setDevice = function ( value ) {
+    cameraVR.projectionMatrix.copy(cameraL.projectionMatrix);
 
-		if ( value !== undefined ) device = value;
+    //
 
-	};
+    var layers = device.getLayers();
 
-	this.setPoseTarget = function ( object ) {
+    if (layers.length) {
+      var layer = layers[0];
 
-		if ( object !== undefined ) poseTarget = object;
+      if (layer.leftBounds !== null && layer.leftBounds.length === 4) {
+        cameraL.bounds.fromArray(layer.leftBounds);
+      }
 
-	};
+      if (layer.rightBounds !== null && layer.rightBounds.length === 4) {
+        cameraR.bounds.fromArray(layer.rightBounds);
+      }
+    }
 
-	this.getCamera = function ( camera ) {
+    return cameraVR;
+  };
 
-		if ( device === null ) return camera;
+  this.getStandingMatrix = function() {
+    return standingMatrix;
+  };
 
-		device.depthNear = camera.near;
-		device.depthFar = camera.far;
+  this.submitFrame = function() {
+    if (device && device.isPresenting) device.submitFrame();
+  };
 
-		device.getFrameData( frameData );
-
-		//
-
-		var stageParameters = device.stageParameters;
-
-		if ( stageParameters ) {
-
-			standingMatrix.fromArray( stageParameters.sittingToStandingTransform );
-
-		} else {
-
-			standingMatrix.makeTranslation( 0, scope.userHeight, 0 );
-
-		}
-
-
-		var pose = frameData.pose;
-		var poseObject = poseTarget !== null ? poseTarget : camera;
-
-		// We want to manipulate poseObject by its position and quaternion components since users may rely on them.
-		poseObject.matrix.copy( standingMatrix );
-		poseObject.matrix.decompose( poseObject.position, poseObject.quaternion, poseObject.scale );
-
-		if ( pose.orientation !== null ) {
-
-			tempQuaternion.fromArray( pose.orientation );
-			poseObject.quaternion.multiply( tempQuaternion );
-
-		}
-
-		if ( pose.position !== null ) {
-
-			tempQuaternion.setFromRotationMatrix( standingMatrix );
-			tempPosition.fromArray( pose.position );
-			tempPosition.applyQuaternion( tempQuaternion );
-			poseObject.position.add( tempPosition );
-
-		}
-
-		poseObject.updateMatrixWorld();
-
-		if ( device.isPresenting === false ) return camera;
-
-		//
-
-		cameraL.near = camera.near;
-		cameraR.near = camera.near;
-
-		cameraL.far = camera.far;
-		cameraR.far = camera.far;
-
-		cameraVR.matrixWorld.copy( camera.matrixWorld );
-		cameraVR.matrixWorldInverse.copy( camera.matrixWorldInverse );
-
-		cameraL.matrixWorldInverse.fromArray( frameData.leftViewMatrix );
-		cameraR.matrixWorldInverse.fromArray( frameData.rightViewMatrix );
-
-		// TODO (mrdoob) Double check this code
-
-		standingMatrixInverse.getInverse( standingMatrix );
-
-		cameraL.matrixWorldInverse.multiply( standingMatrixInverse );
-		cameraR.matrixWorldInverse.multiply( standingMatrixInverse );
-
-		var parent = poseObject.parent;
-
-		if ( parent !== null ) {
-
-			matrixWorldInverse.getInverse( parent.matrixWorld );
-
-			cameraL.matrixWorldInverse.multiply( matrixWorldInverse );
-			cameraR.matrixWorldInverse.multiply( matrixWorldInverse );
-
-		}
-
-		// envMap and Mirror needs camera.matrixWorld
-
-		cameraL.matrixWorld.getInverse( cameraL.matrixWorldInverse );
-		cameraR.matrixWorld.getInverse( cameraR.matrixWorldInverse );
-
-		cameraL.projectionMatrix.fromArray( frameData.leftProjectionMatrix );
-		cameraR.projectionMatrix.fromArray( frameData.rightProjectionMatrix );
-
-		// HACK (mrdoob)
-		// https://github.com/w3c/webvr/issues/203
-
-		cameraVR.projectionMatrix.copy( cameraL.projectionMatrix );
-
-		//
-
-		var layers = device.getLayers();
-
-		if ( layers.length ) {
-
-			var layer = layers[ 0 ];
-
-			if ( layer.leftBounds !== null && layer.leftBounds.length === 4 ) {
-
-				cameraL.bounds.fromArray( layer.leftBounds );
-
-			}
-
-			if ( layer.rightBounds !== null && layer.rightBounds.length === 4 ) {
-
-				cameraR.bounds.fromArray( layer.rightBounds );
-
-			}
-
-		}
-
-		return cameraVR;
-
-	};
-
-	this.getStandingMatrix = function () {
-
-		return standingMatrix;
-
-	};
-
-	this.submitFrame = function () {
-
-		if ( device && device.isPresenting ) device.submitFrame();
-
-	};
-
-	this.dispose = function () {
-
-		if ( typeof window !== 'undefined' ) {
-
-			window.removeEventListener( 'vrdisplaypresentchange', onVRDisplayPresentChange );
-
-		}
-
-	};
-
+  this.dispose = function() {
+    if (typeof window !== "undefined") {
+      window.removeEventListener(
+        "vrdisplaypresentchange",
+        onVRDisplayPresentChange
+      );
+    }
+  };
 }
 
 export { WebVRManager };
