@@ -2,43 +2,33 @@
  * @author mrdoob / http://mrdoob.com/
  */
 
-//  音频分析器
+//  音频分析器，采样浏览器原生的音频分析器
 function AudioAnalyser(audio, fftSize) {
+  this.analyser = audio.context.createAnalyser();
+  this.analyser.fftSize = fftSize !== undefined ? fftSize : 2048;
 
-    this.analyser = audio.context.createAnalyser();
-    this.analyser.fftSize = fftSize !== undefined ? fftSize : 2048;
+  this.data = new Uint8Array(this.analyser.frequencyBinCount);
 
-    this.data = new Uint8Array(this.analyser.frequencyBinCount);
-
-    audio.getOutput().connect(this.analyser);
-
+  audio.getOutput().connect(this.analyser);
 }
 
 Object.assign(AudioAnalyser.prototype, {
+  getFrequencyData: function() {
+    this.analyser.getByteFrequencyData(this.data);
 
-    getFrequencyData: function() {
+    return this.data;
+  },
 
-        this.analyser.getByteFrequencyData(this.data);
+  getAverageFrequency: function() {
+    var value = 0,
+      data = this.getFrequencyData();
 
-        return this.data;
-
-    },
-
-    getAverageFrequency: function() {
-
-        var value = 0,
-            data = this.getFrequencyData();
-
-        for (var i = 0; i < data.length; i++) {
-
-            value += data[i];
-
-        }
-
-        return value / data.length;
-
+    for (var i = 0; i < data.length; i++) {
+      value += data[i];
     }
 
+    return value / data.length;
+  }
 });
 
 export { AudioAnalyser };
