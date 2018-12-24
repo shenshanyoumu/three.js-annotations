@@ -1,80 +1,78 @@
-import { Curve } from '../core/Curve.js';
-import { CubicBezier } from '../core/Interpolations.js';
-import { Vector3 } from '../../math/Vector3.js';
+import { Curve } from "../core/Curve.js";
+import { CubicBezier } from "../core/Interpolations.js";
+import { Vector3 } from "../../math/Vector3.js";
 
+/**
+ * 三维空间中三次贝塞尔曲线
+ * @param {*} v0 曲线起点
+ * @param {*} v1 控制点1
+ * @param {*} v2 控制点2
+ * @param {*} v3 曲线终点
+ */
+function CubicBezierCurve3(v0, v1, v2, v3) {
+  Curve.call(this);
 
-function CubicBezierCurve3( v0, v1, v2, v3 ) {
+  this.type = "CubicBezierCurve3";
 
-	Curve.call( this );
-
-	this.type = 'CubicBezierCurve3';
-
-	this.v0 = v0 || new Vector3();
-	this.v1 = v1 || new Vector3();
-	this.v2 = v2 || new Vector3();
-	this.v3 = v3 || new Vector3();
-
+  this.v0 = v0 || new Vector3();
+  this.v1 = v1 || new Vector3();
+  this.v2 = v2 || new Vector3();
+  this.v3 = v3 || new Vector3();
 }
 
-CubicBezierCurve3.prototype = Object.create( Curve.prototype );
+CubicBezierCurve3.prototype = Object.create(Curve.prototype);
 CubicBezierCurve3.prototype.constructor = CubicBezierCurve3;
 
 CubicBezierCurve3.prototype.isCubicBezierCurve3 = true;
 
-CubicBezierCurve3.prototype.getPoint = function ( t, optionalTarget ) {
+CubicBezierCurve3.prototype.getPoint = function(t, optionalTarget) {
+  var point = optionalTarget || new Vector3();
 
-	var point = optionalTarget || new Vector3();
+  var v0 = this.v0,
+    v1 = this.v1,
+    v2 = this.v2,
+    v3 = this.v3;
 
-	var v0 = this.v0, v1 = this.v1, v2 = this.v2, v3 = this.v3;
+  point.set(
+    CubicBezier(t, v0.x, v1.x, v2.x, v3.x),
+    CubicBezier(t, v0.y, v1.y, v2.y, v3.y),
+    CubicBezier(t, v0.z, v1.z, v2.z, v3.z)
+  );
 
-	point.set(
-		CubicBezier( t, v0.x, v1.x, v2.x, v3.x ),
-		CubicBezier( t, v0.y, v1.y, v2.y, v3.y ),
-		CubicBezier( t, v0.z, v1.z, v2.z, v3.z )
-	);
-
-	return point;
-
+  return point;
 };
 
-CubicBezierCurve3.prototype.copy = function ( source ) {
+CubicBezierCurve3.prototype.copy = function(source) {
+  Curve.prototype.copy.call(this, source);
 
-	Curve.prototype.copy.call( this, source );
+  this.v0.copy(source.v0);
+  this.v1.copy(source.v1);
+  this.v2.copy(source.v2);
+  this.v3.copy(source.v3);
 
-	this.v0.copy( source.v0 );
-	this.v1.copy( source.v1 );
-	this.v2.copy( source.v2 );
-	this.v3.copy( source.v3 );
-
-	return this;
-
+  return this;
 };
 
-CubicBezierCurve3.prototype.toJSON = function () {
+CubicBezierCurve3.prototype.toJSON = function() {
+  var data = Curve.prototype.toJSON.call(this);
 
-	var data = Curve.prototype.toJSON.call( this );
+  data.v0 = this.v0.toArray();
+  data.v1 = this.v1.toArray();
+  data.v2 = this.v2.toArray();
+  data.v3 = this.v3.toArray();
 
-	data.v0 = this.v0.toArray();
-	data.v1 = this.v1.toArray();
-	data.v2 = this.v2.toArray();
-	data.v3 = this.v3.toArray();
-
-	return data;
-
+  return data;
 };
 
-CubicBezierCurve3.prototype.fromJSON = function ( json ) {
+CubicBezierCurve3.prototype.fromJSON = function(json) {
+  Curve.prototype.fromJSON.call(this, json);
 
-	Curve.prototype.fromJSON.call( this, json );
+  this.v0.fromArray(json.v0);
+  this.v1.fromArray(json.v1);
+  this.v2.fromArray(json.v2);
+  this.v3.fromArray(json.v3);
 
-	this.v0.fromArray( json.v0 );
-	this.v1.fromArray( json.v1 );
-	this.v2.fromArray( json.v2 );
-	this.v3.fromArray( json.v3 );
-
-	return this;
-
+  return this;
 };
-
 
 export { CubicBezierCurve3 };
