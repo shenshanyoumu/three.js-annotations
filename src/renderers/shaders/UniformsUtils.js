@@ -3,65 +3,50 @@
  */
 
 var UniformsUtils = {
+  merge: function(uniforms) {
+    var merged = {};
 
-	merge: function ( uniforms ) {
+    for (var u = 0; u < uniforms.length; u++) {
+      var tmp = this.clone(uniforms[u]);
 
-		var merged = {};
+      for (var p in tmp) {
+        merged[p] = tmp[p];
+      }
+    }
 
-		for ( var u = 0; u < uniforms.length; u ++ ) {
+    return merged;
+  },
 
-			var tmp = this.clone( uniforms[ u ] );
+  clone: function(uniforms_src) {
+    var uniforms_dst = {};
 
-			for ( var p in tmp ) {
+    for (var u in uniforms_src) {
+      uniforms_dst[u] = {};
 
-				merged[ p ] = tmp[ p ];
+      for (var p in uniforms_src[u]) {
+        var parameter_src = uniforms_src[u][p];
 
-			}
+        if (
+          parameter_src &&
+          (parameter_src.isColor ||
+            parameter_src.isMatrix3 ||
+            parameter_src.isMatrix4 ||
+            parameter_src.isVector2 ||
+            parameter_src.isVector3 ||
+            parameter_src.isVector4 ||
+            parameter_src.isTexture)
+        ) {
+          uniforms_dst[u][p] = parameter_src.clone();
+        } else if (Array.isArray(parameter_src)) {
+          uniforms_dst[u][p] = parameter_src.slice();
+        } else {
+          uniforms_dst[u][p] = parameter_src;
+        }
+      }
+    }
 
-		}
-
-		return merged;
-
-	},
-
-	clone: function ( uniforms_src ) {
-
-		var uniforms_dst = {};
-
-		for ( var u in uniforms_src ) {
-
-			uniforms_dst[ u ] = {};
-
-			for ( var p in uniforms_src[ u ] ) {
-
-				var parameter_src = uniforms_src[ u ][ p ];
-
-				if ( parameter_src && ( parameter_src.isColor ||
-					parameter_src.isMatrix3 || parameter_src.isMatrix4 ||
-					parameter_src.isVector2 || parameter_src.isVector3 || parameter_src.isVector4 ||
-					parameter_src.isTexture ) ) {
-
-					uniforms_dst[ u ][ p ] = parameter_src.clone();
-
-				} else if ( Array.isArray( parameter_src ) ) {
-
-					uniforms_dst[ u ][ p ] = parameter_src.slice();
-
-				} else {
-
-					uniforms_dst[ u ][ p ] = parameter_src;
-
-				}
-
-			}
-
-		}
-
-		return uniforms_dst;
-
-	}
-
+    return uniforms_dst;
+  }
 };
-
 
 export { UniformsUtils };

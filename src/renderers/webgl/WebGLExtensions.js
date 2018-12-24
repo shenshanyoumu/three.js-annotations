@@ -1,65 +1,65 @@
 /**
- * @author mrdoob / http://mrdoob.com/
+ * WebGL系统中的扩展类型
+ * @param {*} gl WEbGL渲染上下文对象
  */
+function WebGLExtensions(gl) {
+  var extensions = {};
 
-function WebGLExtensions( gl ) {
+  return {
+    get: function(name) {
+      if (extensions[name] !== undefined) {
+        return extensions[name];
+      }
 
-	var extensions = {};
+      var extension;
 
-	return {
+      switch (name) {
+        case "WEBGL_depth_texture":
+          extension =
+            gl.getExtension("WEBGL_depth_texture") ||
+            gl.getExtension("MOZ_WEBGL_depth_texture") ||
+            gl.getExtension("WEBKIT_WEBGL_depth_texture");
+          break;
 
-		get: function ( name ) {
+        case "EXT_texture_filter_anisotropic":
+          extension =
+            gl.getExtension("EXT_texture_filter_anisotropic") ||
+            gl.getExtension("MOZ_EXT_texture_filter_anisotropic") ||
+            gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
+          break;
 
-			if ( extensions[ name ] !== undefined ) {
+        case "WEBGL_compressed_texture_s3tc":
+          extension =
+            gl.getExtension("WEBGL_compressed_texture_s3tc") ||
+            gl.getExtension("MOZ_WEBGL_compressed_texture_s3tc") ||
+            gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc");
+          break;
 
-				return extensions[ name ];
+        case "WEBGL_compressed_texture_pvrtc":
+          extension =
+            gl.getExtension("WEBGL_compressed_texture_pvrtc") ||
+            gl.getExtension("WEBKIT_WEBGL_compressed_texture_pvrtc");
+          break;
 
-			}
+        case "WEBGL_compressed_texture_etc1":
+          extension = gl.getExtension("WEBGL_compressed_texture_etc1");
+          break;
 
-			var extension;
+        default:
+          extension = gl.getExtension(name);
+      }
 
-			switch ( name ) {
+      if (extension === null) {
+        console.warn(
+          "THREE.WebGLRenderer: " + name + " extension not supported."
+        );
+      }
 
-				case 'WEBGL_depth_texture':
-					extension = gl.getExtension( 'WEBGL_depth_texture' ) || gl.getExtension( 'MOZ_WEBGL_depth_texture' ) || gl.getExtension( 'WEBKIT_WEBGL_depth_texture' );
-					break;
+      extensions[name] = extension;
 
-				case 'EXT_texture_filter_anisotropic':
-					extension = gl.getExtension( 'EXT_texture_filter_anisotropic' ) || gl.getExtension( 'MOZ_EXT_texture_filter_anisotropic' ) || gl.getExtension( 'WEBKIT_EXT_texture_filter_anisotropic' );
-					break;
-
-				case 'WEBGL_compressed_texture_s3tc':
-					extension = gl.getExtension( 'WEBGL_compressed_texture_s3tc' ) || gl.getExtension( 'MOZ_WEBGL_compressed_texture_s3tc' ) || gl.getExtension( 'WEBKIT_WEBGL_compressed_texture_s3tc' );
-					break;
-
-				case 'WEBGL_compressed_texture_pvrtc':
-					extension = gl.getExtension( 'WEBGL_compressed_texture_pvrtc' ) || gl.getExtension( 'WEBKIT_WEBGL_compressed_texture_pvrtc' );
-					break;
-
-				case 'WEBGL_compressed_texture_etc1':
-					extension = gl.getExtension( 'WEBGL_compressed_texture_etc1' );
-					break;
-
-				default:
-					extension = gl.getExtension( name );
-
-			}
-
-			if ( extension === null ) {
-
-				console.warn( 'THREE.WebGLRenderer: ' + name + ' extension not supported.' );
-
-			}
-
-			extensions[ name ] = extension;
-
-			return extension;
-
-		}
-
-	};
-
+      return extension;
+    }
+  };
 }
-
 
 export { WebGLExtensions };

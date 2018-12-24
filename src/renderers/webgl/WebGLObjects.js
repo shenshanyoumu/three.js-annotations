@@ -1,52 +1,38 @@
 /**
- * @author mrdoob / http://mrdoob.com/
+ *
+ * @param {*} geometries 模型的几何结构
+ * @param {*} info 模型其他信息
  */
+function WebGLObjects(geometries, info) {
+  var updateList = {};
 
-function WebGLObjects( geometries, info ) {
+  function update(object) {
+    var frame = info.render.frame;
 
-	var updateList = {};
+    var geometry = object.geometry;
+    var buffergeometry = geometries.get(object, geometry);
 
-	function update( object ) {
+    // 每一帧渲染一次模型
+    if (updateList[buffergeometry.id] !== frame) {
+      if (geometry.isGeometry) {
+        buffergeometry.updateFromObject(object);
+      }
 
-		var frame = info.render.frame;
+      geometries.update(buffergeometry);
+      updateList[buffergeometry.id] = frame;
+    }
 
-		var geometry = object.geometry;
-		var buffergeometry = geometries.get( object, geometry );
+    return buffergeometry;
+  }
 
-		// Update once per frame
+  function dispose() {
+    updateList = {};
+  }
 
-		if ( updateList[ buffergeometry.id ] !== frame ) {
-
-			if ( geometry.isGeometry ) {
-
-				buffergeometry.updateFromObject( object );
-
-			}
-
-			geometries.update( buffergeometry );
-
-			updateList[ buffergeometry.id ] = frame;
-
-		}
-
-		return buffergeometry;
-
-	}
-
-	function dispose() {
-
-		updateList = {};
-
-	}
-
-	return {
-
-		update: update,
-		dispose: dispose
-
-	};
-
+  return {
+    update: update,
+    dispose: dispose
+  };
 }
-
 
 export { WebGLObjects };
