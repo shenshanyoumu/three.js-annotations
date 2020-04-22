@@ -3,10 +3,12 @@ var _Math = {
   DEG2RAD: Math.PI / 180,
   RAD2DEG: 180 / Math.PI,
 
-  // 立刻执行函数计算得到UUID，目前可以使用ES6的Symbol语法
+  // 场景中所有的要素都通过UUID来唯一标记
+  // 目前可以使用ES6的Symbol语法
   generateUUID: (function() {
     var lut = [];
 
+    // 将256以下的整数转换为十六进制的字符串
     for (var i = 0; i < 256; i++) {
       lut[i] = (i < 16 ? "0" : "") + i.toString(16);
     }
@@ -38,7 +40,8 @@ var _Math = {
         lut[(d3 >> 16) & 0xff] +
         lut[(d3 >> 24) & 0xff];
 
-      //  字符串的转换操作后返回新的字符串，而JS垃圾回收器回收堆栈空间
+      //  字符串的转换操作后返回新的字符串，
+      // 而JS垃圾回收器回收堆栈空间
       return uuid.toUpperCase();
     };
   })(),
@@ -48,28 +51,35 @@ var _Math = {
     return Math.max(min, Math.min(max, value));
   },
 
-  // 计算M对N的模
+  // 当n/m符号相同，则下面实现等价于n%m;
+  // 如果n/m符号相反，则下面实现确保余数与m同符号
   euclideanModulo: function(n, m) {
     return ((n % m) + m) % m;
   },
 
-  // 线性映射,从[a1,a2]到[b1,b2]的映射过程
+  // 线性映射,即两个点[[a1,b1],[a2,b2]]的映射过程
+  // x参数在区间[a1,a2]滑动，从而投影到[b1,b2]区间上的变化
   mapLinear: function(x, a1, a2, b1, b2) {
     return b1 + ((x - a1) * (b2 - b1)) / (a2 - a1);
   },
 
-  // 线性插值，t范围为（0-1）。lerp表示linear interpolation
+  // lerp表示linear interpolation，即线性插值过程
+  // 参数t在[0,1]区间变化，返回[x,y]区间上的特定点
   lerp: function(x, y, t) {
     return (1 - t) * x + t * y;
   },
 
-  // 类sigmoid的夹逼函数，返回[0,1]。x的变化非线性影响Y。在神经网络中，单个神经元可以采用类似Sigmoid函数来触发激励
+  // 类sigmoid的夹逼函数，返回[0,1]。
+  // x的变化非线性影响Y。在神经网络中，
+  // 单个神经元可以采用类似Sigmoid函数来触发激励
   smoothstep: function(x, min, max) {
     if (x <= min) return 0;
     if (x >= max) return 1;
 
+    // 将x从[min,max]区间归一化到[0,1]区间
     x = (x - min) / (max - min);
-
+   
+    // 三次曲线用于平滑端点的连接关系
     return x * x * (3 - 2 * x);
   },
 
@@ -108,7 +118,8 @@ var _Math = {
     return radians * _Math.RAD2DEG;
   },
 
-  // 判断参数是否是2的幂，基于位运算的高效算法。因为2^N-1所代表的数值所有位“1”
+  // 判断参数是否是2的幂，基于位运算的高效算法。
+  // 因为2^N-1所代表的数值所有位“1”
   isPowerOfTwo: function(value) {
     return (value & (value - 1)) === 0 && value !== 0;
   },

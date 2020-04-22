@@ -8,19 +8,24 @@ import { Matrix3 } from "../math/Matrix3.js";
 import { _Math } from "../math/Math.js";
 
 // 3D场景中所有存放在scene容器中的模型是Object3D衍生的类对象
+// 每次新建一个场景对象，则全局计数器进行统计
 var object3DId = 0;
 
 function Object3D() {
-  // 每次创建一个对象，则全局技术器+1
-  Object.defineProperty(this, "id", { value: object3DId++ });
+  // 每次创建一个对象，则全局计数器+1
+  Object.defineProperty(this, "id", {
+     value: object3DId++
+     });
 
   // 每个对象还具有UUID
   this.uuid = _Math.generateUUID();
 
+  // 每个场景对象的名称和类型，比如Camera、Texture等
   this.name = "";
   this.type = "Object3D";
 
-  // 具有嵌套结构的对象模型结构
+  // 具有嵌套结构的对象模型结构。Object3D本质上是一个容器对象
+  // three中很多对象都是容器对象，方便对容器整体的位置变换操作
   this.parent = null;
   this.children = [];
 
@@ -51,6 +56,7 @@ function Object3D() {
   rotation.onChange(onRotationChange);
   quaternion.onChange(onQuaternionChange);
 
+  // 定义了Object3D对象的位置坐标、旋转缩放，以及从模型空间到相机空间的变换矩阵
   Object.defineProperties(this, {
     position: {
       enumerable: true,
@@ -74,7 +80,7 @@ function Object3D() {
       value: new Matrix4()
     },
 
-    //正交矩阵
+    //法向量矩阵，在进行光照时根据光线颜色、模型基地色和法向量三者来计算最终片元颜色
     normalMatrix: {
       value: new Matrix3()
     }
@@ -90,7 +96,7 @@ function Object3D() {
   this.matrixAutoUpdate = Object3D.DefaultMatrixAutoUpdate;
   this.matrixWorldNeedsUpdate = false;
 
-  // 为了提高渲染性能，模型分层可以关注发生变化的部分
+  // 为了提高渲染性能，只渲染与camera对象属于同一图层的场景对象
   this.layers = new Layers();
   this.visible = true;
 
@@ -99,6 +105,7 @@ function Object3D() {
   this.receiveShadow = false;
 
   // 物体是否根据出现在相机的frustum区域进行剔除，可以提升性能
+  // 在WebGL中的隐藏面消除功能会通过Z-Depth测试来实现
   this.frustumCulled = true;
   this.renderOrder = 0;
 
@@ -125,6 +132,7 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
   applyMatrix: function(matrix) {
     this.matrix.multiplyMatrices(matrix, this.matrix);
 
+    // 变换矩阵分解为平移、旋转和缩放三种变换
     this.matrix.decompose(this.position, this.quaternion, this.scale);
   },
 
@@ -247,6 +255,7 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     return vector.applyMatrix4(this.matrixWorld);
   },
 
+  // 从世界坐标系转换为模型坐标系
   worldToLocal: (function() {
     var m1 = new Matrix4();
 
@@ -255,7 +264,8 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     };
   })(),
 
-  // 物体的“lookAt”
+  // 一般为camera对象的"lookAt"，需要设置camera的位置、lookAt的目标坐标
+  // 以及camera的上方向
   lookAt: (function() {
     var m1 = new Matrix4();
     var vector = new Vector3();
@@ -267,7 +277,8 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
         vector.set(x, y, z);
       }
 
-      // 如果模型是相机，则lookAt修改变换矩阵；如果模型非相机，则相对于相机修改变换矩阵
+      // 如果模型是相机，则lookAt修改变换矩阵；
+      // 如果模型非相机，则相对于相机修改变换矩阵
       if (this.isCamera) {
         m1.lookAt(this.position, vector, this.up);
       } else {
@@ -278,7 +289,7 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     };
   })(),
 
-  // 添加子模型对象
+  // 添加子模型对象，即在3D场景中形成具有嵌套结构的子场景
   add: function(object) {
     if (arguments.length > 1) {
       for (var i = 0; i < arguments.length; i++) {
@@ -340,7 +351,9 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     return this;
   },
 
-  // 在3D场景中，所有模型构成一棵树。其中根节点为scene容器，为了帮助开发者快速找到模型树中特定模型，则定义了下列方法
+  // 在3D场景中，所有模型构成一棵树。
+  // 其中根节点为scene容器，为了帮助开发者快速找到模型树中特定模型，
+  // 则定义了下列方法
   getObjectById: function(id) {
     return this.getObjectByProperty("id", id);
   },
@@ -465,12 +478,12 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     }
   },
 
-  // 得到当前模型所有祖先模型
+  // 从当前模型对象开始，向上递归调用所有祖先模型，并对每个祖先模块实时回调函数
   traverseAncestors: function(callback) {
     var parent = this.parent;
 
     if (parent !== null) {
-      callback(parent);
+        callback(parent);
 
       parent.traverseAncestors(callback);
     }
@@ -522,7 +535,12 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     // not providing it implies that this is the root object
     // being serialized.
     if (isRootObject) {
-      // initialize meta obj
+      // 元数据定义了一个3D模型的数据类型。在渲染3D模型时，需要定义
+      // geometries：模型的顶点数据、顶点索引数据等
+      // materials: 材质内化了模型的光照特性
+      // textures: 纹理属性包含纹理对象、纹理映射函数(sampler)等
+      // images：是模型所需的外部图片资源，可以用于构造纹理对象
+      //shapes:对一些复杂的3D模型，定义了大量图元表示
       meta = {
         geometries: {},
         materials: {},

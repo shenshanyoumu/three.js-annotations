@@ -1,6 +1,9 @@
 import { Vector3 } from "./Vector3.js";
 
-//  四元数，其中W用于齐次坐标与非齐次坐标的转换
+// 四元数，其中W用于齐次坐标与非齐次坐标的转换
+// 在三维变换中，齐次坐标的运算过程更加方便。
+// 注意下面"_"前缀的分量都是内部使用，对外开发者不暴露
+// 外部通过defineProperty实现的属性访问代理来处理
 function Quaternion(x, y, z, w) {
   this._x = x || 0;
   this._y = y || 0;
@@ -9,7 +12,8 @@ function Quaternion(x, y, z, w) {
 }
 
 Object.assign(Quaternion, {
-  // slerp，表示球面插值
+  // slerp表示球面插值；参数qm、qb和qm都是四元数对象
+  // t表示插值因子
   slerp: function(qa, qb, qm, t) {
     return qm.copy(qa).slerp(qb, t);
   },
@@ -66,6 +70,7 @@ Object.assign(Quaternion, {
   }
 });
 
+// 对外开发者的属性访问代理
 Object.defineProperties(Quaternion.prototype, {
   x: {
     get: function() {
@@ -126,11 +131,12 @@ Object.assign(Quaternion.prototype, {
     return this;
   },
 
+  // 创建一个新的四元数对象
   clone: function() {
     return new this.constructor(this._x, this._y, this._z, this._w);
   },
 
-  // 四元数的拷贝操作，完成后可以调用回调函数
+  // 四元数的拷贝操作，完成后调用回调函数
   copy: function(quaternion) {
     this._x = quaternion.x;
     this._y = quaternion.y;
@@ -153,7 +159,9 @@ Object.assign(Quaternion.prototype, {
     var x = euler._x,
       y = euler._y,
       z = euler._z,
-      // 欧拉角的旋转顺序，游戏领域一般采用“YXZ”顺序
+      
+      // 欧拉角的旋转顺序，游戏领域一般采用“YXZ”顺序；
+      // 不同的旋转顺序产生不同的位置变换效果，请注意！
       order = euler.order;
 
     var cos = Math.cos;
@@ -207,7 +215,8 @@ Object.assign(Quaternion.prototype, {
     return this;
   },
 
-  // 根据绕轴夹角来设置四元数,注意坐标轴默认进行了归一化处理。而且这个坐标轴是物体局部坐标
+  // 根据绕轴夹角来设置四元数,注意坐标轴默认进行了归一化处理。
+  // 而且这个坐标轴是物体局部坐标
   setFromAxisAngle: function(axis, angle) {
     var halfAngle = angle / 2,
       s = Math.sin(halfAngle);
@@ -321,12 +330,12 @@ Object.assign(Quaternion.prototype, {
     return this;
   },
 
-  // 两个四元数向量的点积
+  // 两个四元数向量的点积，一般用于计算夹角
   dot: function(v) {
     return this._x * v._x + this._y * v._y + this._z * v._z + this._w * v._w;
   },
 
-  //   由于四元数是归一化的代数结构，因此下面计算得到四元数分量平方和
+  // 由于四元数是归一化的代数结构，因此下面计算得到四元数分量平方和
   lengthSq: function() {
     return (
       this._x * this._x +
@@ -407,8 +416,10 @@ Object.assign(Quaternion.prototype, {
     return this;
   },
 
-  // 球面插值，当参数t不等于0和1时
+  // 球面插值，qb表示待插值四元数
   slerp: function(qb, t) {
+
+    // 插值因子在区间端点的特殊处理
     if (t === 0) return this;
     if (t === 1) return this.copy(qb);
 
@@ -479,7 +490,7 @@ Object.assign(Quaternion.prototype, {
     );
   },
 
-  // 从一个数组中截取四个元素作为四元数的分量
+  // 从一个数组中offset偏移量开始截取四个元素作为四元数的分量
   fromArray: function(array, offset) {
     if (offset === undefined) offset = 0;
 
@@ -493,7 +504,7 @@ Object.assign(Quaternion.prototype, {
     return this;
   },
 
-  // 将四元数的分量值保存在给定数组的offset位置
+  // 将四元数的分量值依次赋值给数组array从offset偏移量开始的索引
   toArray: function(array, offset) {
     if (array === undefined) array = [];
     if (offset === undefined) offset = 0;
@@ -506,7 +517,7 @@ Object.assign(Quaternion.prototype, {
     return array;
   },
 
-  // 四元数发生变化时设置回调函数
+  // 四元数发生变化时设置回调函数。注意返回this对象才能形成链式调用过程
   onChange: function(callback) {
     this.onChangeCallback = callback;
 
