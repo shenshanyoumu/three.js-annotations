@@ -93,7 +93,7 @@ Object.assign(Euler.prototype, {
     return this;
   },
 
-  // 变换矩阵左上角的3*3小矩阵表示旋转变换
+  // 变换矩阵左上角的3*3小矩阵表示三维空间变换，包括平移、旋转和缩放
   setFromRotationMatrix: function(m, order, update) {
     var clamp = _Math.clamp;
 

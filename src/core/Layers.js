@@ -1,4 +1,4 @@
-// 图层对象
+// 图层对象。mask属性指示是否遮罩
 function Layers() {
   this.mask = 1 | 0;
 }

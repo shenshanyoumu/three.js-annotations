@@ -46,7 +46,7 @@ Object.assign(EventDispatcher.prototype, {
     }
   },
 
-  // 触发事件对象，并调用对应的监听器
+  // 触发事件对象，并调用对应的监听处理函数
   dispatchEvent: function(event) {
     if (this._listeners === undefined) return;
 
