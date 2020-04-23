@@ -57,7 +57,7 @@ Object.assign(Vector2.prototype, {
     return this;
   },
 
-  // 二维向量的单一维度设置
+  // 二维向量分量赋值
   setComponent: function(index, value) {
     switch (index) {
       case 0:
@@ -73,7 +73,7 @@ Object.assign(Vector2.prototype, {
     return this;
   },
 
-  // 二维向量的分量
+  // 二维向量的分量取值
   getComponent: function(index) {
     switch (index) {
       case 0:
@@ -289,12 +289,12 @@ Object.assign(Vector2.prototype, {
     return this.x * v.x + this.y * v.y;
   },
 
-  // 向量范数的平方
+  // 向量2范数的平方
   lengthSq: function() {
     return this.x * this.x + this.y * this.y;
   },
 
-  // 向量的范数
+  // 向量的2范数
   length: function() {
     return Math.sqrt(this.x * this.x + this.y * this.y);
   },

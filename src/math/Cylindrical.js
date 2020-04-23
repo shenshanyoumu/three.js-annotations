@@ -1,7 +1,9 @@
 //  柱面坐标系，radius表示柱面截面半径，theta表示柱面顺时针旋转角度，而Y表示柱面在X-Z平面上的高度
 function Cylindrical(radius, theta, y) {
   this.radius = radius !== undefined ? radius : 1.0; // X-Z平面的圆柱半径
-  this.theta = theta !== undefined ? theta : 0; // 从Z轴正方向逆时针旋转的弧度，如果为2PI，则表示完整的圆柱；否则只是圆柱部分剖面
+
+  // 从Y轴正方向逆时针旋转的弧度，如果为2PI，则表示完整的圆柱；否则只是圆柱部分剖面
+  this.theta = theta !== undefined ? theta : 0; 
   this.y = y !== undefined ? y : 0; // 圆柱高度
 
   return this;

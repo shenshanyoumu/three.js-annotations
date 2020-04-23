@@ -1,6 +1,6 @@
 import { Vector3 } from "./Vector3.js";
 
-//  秩为3的矩阵，矩阵元素列优先存储
+//  秩为3的矩阵，矩阵元素列优先存储;这是从WebGL传承下来的规范
 function Matrix3() {
   this.elements = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 
