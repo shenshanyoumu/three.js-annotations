@@ -2,9 +2,11 @@ import { Matrix3 } from "./Matrix3.js";
 import { Vector3 } from "./Vector3.js";
 
 /**
- * 由法向量和沿着法向量的比例系数可以构成三维空间中平面描述方程
+ * 由法向量和常数可以对三维空间中特定的平面进行描述
  * @param {*} normal 定义平面的归一化法向量
- * @param {*} constant 确定三维空间唯一的平面。因为只通过法向量无法确定唯一的平面，而是一组相互平行的平面簇
+ * @param {*} constant 确定三维空间唯一的平面。
+ * 因为只通过法向量无法确定唯一的平面，而是一组相互平行的平面簇。
+ * constant表示在法向量方向上与原点的距离
  */
 function Plane(normal, constant) {
   this.normal = normal !== undefined ? normal : new Vector3(1, 0, 0);
@@ -28,7 +30,7 @@ Object.assign(Plane.prototype, {
 
   // normal表示外部传递的平面法向量；point表示共面的一个给定点坐标
   // 基于法向量和共面点的内积计算，得到的是共面点与原点形成的向量在法向量方向上的投影距离
-  // 根据平面方程可知，这种确定了法向量和法向量方向上比例系数的参数化方程可以唯一确定一个平面
+  // 根据平面方程可知，这种确定了法向量和法向量方向上与原点距离constant的坐标点，唯一平面
   setFromNormalAndCoplanarPoint: function(normal, point) {
     this.normal.copy(normal);
     this.constant = -point.dot(this.normal);
@@ -40,15 +42,12 @@ Object.assign(Plane.prototype, {
     var v1 = new Vector3();
     var v2 = new Vector3();
 
-    // 根据三个共面点，计算平面的法向量和沿着法向量方向上的比例系数constant
+    // 根据三个共面点，计算平面的法向量和法向量上与原点的截距constant可以唯一确定平面
     return function setFromCoplanarPoints(a, b, c) {
       var normal = v1
         .subVectors(c, b)
         .cross(v2.subVectors(a, b))
         .normalize();
-
-      // Q: should an error be thrown if normal is zero (e.g. degenerate plane)?
-
       this.setFromNormalAndCoplanarPoint(normal, a);
 
       return this;
@@ -66,7 +65,7 @@ Object.assign(Plane.prototype, {
     return this;
   },
 
-  // 平面参数方程的归一化处理
+  // 平面参数方程的归一化处理，即法向量归一化和常熟因子constant归一化
   normalize: function() {
     var inverseNormalLength = 1.0 / this.normal.length();
     this.normal.multiplyScalar(inverseNormalLength);
@@ -82,12 +81,14 @@ Object.assign(Plane.prototype, {
     return this;
   },
 
-  //计算平面与给定点的距离
+  //注意constant变量是平面与原点在世界坐标系中的距离
+  // 而point和normal相对于平面的局部坐标系
   distanceToPoint: function(point) {
     return this.normal.dot(point) + this.constant;
   },
 
-  // 计算平面与球面的距离，计算方法就是平面与球面中心距离-球面半径。这个方法用于平面与球面相交检测过程
+  // 计算平面与球面的距离，计算方法就是平面与球面中心距离-球面半径。
+  // 这个方法用于平面与球面相交检测过程
   distanceToSphere: function(sphere) {
     return this.distanceToPoint(sphere.center) - sphere.radius;
   },
@@ -191,6 +192,8 @@ Object.assign(Plane.prototype, {
     };
   })(),
 
+  // offset向量不一定沿着法向量方向，因此需要将offset向量投影到法向量上
+  // 然后在法向量上进行上下平移操作
   translate: function(offset) {
     this.constant -= offset.dot(this.normal);
 

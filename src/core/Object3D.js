@@ -697,6 +697,7 @@ Object3D.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
 
     this.userData = JSON.parse(JSON.stringify(source.userData));
 
+    // 深拷贝则递归属性
     if (recursive === true) {
       for (var i = 0; i < source.children.length; i++) {
         var child = source.children[i];

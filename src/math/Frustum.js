@@ -2,7 +2,7 @@ import { Vector3 } from "./Vector3.js";
 import { Sphere } from "./Sphere.js";
 import { Plane } from "./Plane.js";
 
-//  透视相机的内部参数设置，平截头面
+//  正交相机的内部参数设置，平截头面
 function Frustum(p0, p1, p2, p3, p4, p5) {
   this.planes = [
     p0 !== undefined ? p0 : new Plane(),

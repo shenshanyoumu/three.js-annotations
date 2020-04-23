@@ -27,7 +27,7 @@ Object.assign(Line3.prototype, {
     return this;
   },
 
-  // 得到险段对象的中心点坐标
+  // 得到线段对象的中心点坐标
   getCenter: function(target) {
     if (target === undefined) {
       console.warn("THREE.Line3: .getCenter() target is now required");
@@ -38,7 +38,7 @@ Object.assign(Line3.prototype, {
     return target.addVectors(this.start, this.end).multiplyScalar(0.5);
   },
 
-  // 计算线段向量
+  // 计算线段形成的向量
   delta: function(target) {
     if (target === undefined) {
       console.warn("THREE.Line3: .delta() target is now required");
@@ -112,7 +112,7 @@ Object.assign(Line3.prototype, {
     return this;
   },
 
-  // 线段相等，即使起点相等；而终点相等
+  // 线段相等，即起点相等且终点相等
   equals: function(line) {
     return line.start.equals(this.start) && line.end.equals(this.end);
   }
