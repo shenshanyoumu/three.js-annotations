@@ -4,8 +4,8 @@ import { Vector2 } from "../math/Vector2.js";
 import { Color } from "../math/Color.js";
 
 /**
- * 模型属性缓冲对象
- * @param {*} array 默认采样UTF-8编码的数组
+ * 模型属性缓冲对象,webgl中顶点着色器中attribute修饰的变量一般从缓冲区取值
+ * @param {*} array typedArray，一般为buffer对象
  * @param {*} itemSize 每个属性需要的字节数
  * @param {*} normalized 属性值是否归一化处理
  */
@@ -17,11 +17,18 @@ function BufferAttribute(array, itemSize, normalized) {
       "THREE.BufferAttribute: array should be a Typed Array."
     );
   }
-
+  
+  //缓冲对象名称
   this.name = "";
-
+  
+  //array是一个TypedArray，注意TypedArray底层基于buffer对象。
   this.array = array;
+
+  // 场景中不同属性变量的类型不一样，因此需要的字节数不一样。
+  // 注意属性变量值由vector构成，vector每个分量的类型等同于array的声明类型
   this.itemSize = itemSize;
+
+  // 计算属性变量个数，比如webgl中顶点着色器计算顶点个数
   this.count = array !== undefined ? array.length / itemSize : 0;
   this.normalized = normalized === true;
 
@@ -49,6 +56,7 @@ Object.assign(BufferAttribute.prototype, {
       );
     }
 
+    // array.length
     this.count = array !== undefined ? array.length / this.itemSize : 0;
     this.array = array;
   },
@@ -179,6 +187,7 @@ Object.assign(BufferAttribute.prototype, {
     return this;
   },
 
+  // 在TypedArray的一切操作都会映射到底层buffer对象，offset作为偏移量
   set: function(value, offset) {
     if (offset === undefined) offset = 0;
 
@@ -187,6 +196,7 @@ Object.assign(BufferAttribute.prototype, {
     return this;
   },
 
+  // 每一个属性变量值由vector组成，vector中每个分量类型等价于TypedArray的类型
   getX: function(index) {
     return this.array[index * this.itemSize];
   },
@@ -341,7 +351,6 @@ Float64BufferAttribute.prototype = Object.create(BufferAttribute.prototype);
 Float64BufferAttribute.prototype.constructor = Float64BufferAttribute;
 
 //
-
 export {
   Float64BufferAttribute,
   Float32BufferAttribute,

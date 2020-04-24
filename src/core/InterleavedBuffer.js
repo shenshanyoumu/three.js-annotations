@@ -2,6 +2,8 @@
  * @author benaadams / https://twitter.com/ben_a_adams
  */
 
+// 在webgl中，为了充分利用缓存区。常常将顶点坐标数据和顶点颜色数据交叉编排进数组中
+// 通过对数组元素增加偏移量来分离出顶点坐标和顶点颜色
 function InterleavedBuffer(array, stride) {
   this.array = array; //字符数组，每个元素表示一个UTF-8编码的字符
   this.stride = stride; //从数组中采样的步长

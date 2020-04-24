@@ -11,6 +11,7 @@ function Clock(autoStart) {
 
 Object.assign(Clock.prototype, {
   start: function() {
+    // W3C的performance规范比Date精度更高
     this.startTime = (typeof performance === "undefined"
       ? Date
       : performance
@@ -49,6 +50,7 @@ Object.assign(Clock.prototype, {
       diff = (newTime - this.oldTime) / 1000;
       this.oldTime = newTime;
 
+      // 从开始计时起，保存时间的流逝片段
       this.elapsedTime += diff;
     }
 

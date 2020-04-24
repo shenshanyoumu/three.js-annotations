@@ -1,7 +1,9 @@
 import { Color } from "../math/Color.js";
 import { Vector3 } from "../math/Vector3.js";
 
-//  三维表面，这是对WebGL中几何模型的表面建模对象
+//  可理解为三角形图元，前面三个参数为顶点；
+//  normal表示三角形三个顶点的法向量；color表示顶点颜色数组
+//  materialIndex用于对三角形模型的光照计算
 function Face3(a, b, c, normal, color, materialIndex) {
   this.a = a;
   this.b = b;
@@ -16,6 +18,7 @@ function Face3(a, b, c, normal, color, materialIndex) {
   this.vertexColors = Array.isArray(color) ? color : [];
 
   // 该表面需要的材质索引，注意材质对象具有光照特性，而纹理图片是不具备的
+  // 在webgl中处理光照着色，需要根据入射光与片元法向量夹角、入射光颜色和模型基地色来计算
   this.materialIndex = materialIndex !== undefined ? materialIndex : 0;
 }
 
