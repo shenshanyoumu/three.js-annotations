@@ -22,20 +22,23 @@ function Geometry() {
   this.name = "";
   this.type = "Geometry";
 
-  // 几何模型的构建要素
+  // 几何模型的构建要素，顶点坐标、顶点颜色、多面体的面描述
   this.vertices = [];
   this.colors = [];
   this.faces = [];
   this.faceVertexUvs = [[]];
 
+  // 模型的形变
   this.morphTargets = [];
   this.morphNormals = [];
 
+  // 皮肤其实就是一种纹理对象
   this.skinWeights = [];
   this.skinIndices = [];
 
   this.lineDistances = [];
 
+  // 包围盒和包围球都是为了碰撞检测
   this.boundingBox = null;
   this.boundingSphere = null;
 
@@ -50,7 +53,7 @@ function Geometry() {
   this.groupsNeedUpdate = false;
 }
 
-// 几何模型也是EventDispatcher类的子类
+// 几何模型基于EventDispatcher对象构建，具有事件分发的能力
 Geometry.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
   constructor: Geometry,
 
