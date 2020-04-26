@@ -1,4 +1,5 @@
-//  数据存储结构。Interleaved交叉buffer；在WebGL中基于缓冲区的interleaved技术可以同时存储坐标和颜色的属性
+//  数据存储结构。Interleaved交叉buffer；
+// 在WebGL中基于缓冲区的interleaved技术可以同时存储坐标和颜色的属性
 function InterleavedBufferAttribute(
   interleavedBuffer,
   itemSize,
@@ -29,6 +30,7 @@ Object.defineProperties(InterleavedBufferAttribute.prototype, {
 Object.assign(InterleavedBufferAttribute.prototype, {
   isInterleavedBufferAttribute: true,
 
+  // 步长与偏移量共同决定从interleaved缓冲数组中特定位置进行取值
   setX: function(index, x) {
     this.data.array[index * this.data.stride + this.offset] = x;
 

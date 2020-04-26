@@ -59,8 +59,9 @@ Object.assign(Raycaster.prototype, {
     this.ray.set(origin, direction);
   },
 
-  // 从相机视场中点来设置Raycaster
+  // 从相机视场设置Raycaster
   setFromCamera: function(coords, camera) {
+    // 透视相机中，将射线投射对象的坐标系转换到相机坐标空间中
     if (camera && camera.isPerspectiveCamera) {
       this.ray.origin.setFromMatrixPosition(camera.matrixWorld);
       this.ray.direction

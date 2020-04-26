@@ -24,8 +24,7 @@ function BufferAttribute(array, itemSize, normalized) {
   //array是一个TypedArray，注意TypedArray底层基于buffer对象。
   this.array = array;
 
-  // 场景中不同属性变量的类型不一样，因此需要的字节数不一样。
-  // 注意属性变量值由vector构成，vector每个分量的类型等同于array的声明类型
+  // 每个属性变量需要的类型数组元素个数，比如坐标点需要(x,y,z)至少三个数组元素
   this.itemSize = itemSize;
 
   // 计算属性变量个数，比如webgl中顶点着色器计算顶点个数
@@ -237,6 +236,7 @@ Object.assign(BufferAttribute.prototype, {
     return this;
   },
 
+  // 在webgl中多种属性数据可以通过interleaved交叉数组来传入
   setXY: function(index, x, y) {
     index *= this.itemSize;
 
