@@ -4,7 +4,8 @@ import { Object3D } from "../core/Object3D.js";
  * @author mrdoob / http://mrdoob.com/
  */
 
-//场景容器对象也属于Object3D的子类，场景具有背景/雾化效果和检测自动更新
+//场景容器对象也属于Object3D的子类，
+// 场景具有背景/雾化效果和检测自动更新
 function Scene() {
   Object3D.call(this);
 
