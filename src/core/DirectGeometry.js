@@ -2,7 +2,8 @@ import { Vector2 } from "../math/Vector2.js";
 
 // 没有缓存属性的geometry
 function DirectGeometry() {
-  // 几何模型由顶点、每个三角面法向量、每个顶点颜色，UV纹理映射坐标构成
+  // 几何模型由顶点、每个三角面法向量、每个顶点颜色
+  // UV纹理映射坐标构成
   this.vertices = [];
   this.normals = [];
   this.colors = [];
@@ -35,13 +36,13 @@ Object.assign(DirectGeometry.prototype, {
     var groups = [];
     var materialIndex = undefined;
 
+    // 几何体模型的face数组
     var faces = geometry.faces;
 
     for (var i = 0; i < faces.length; i++) {
       var face = faces[i];
 
-      // materials
-
+      // 材质与纹理的差别在于，材质具有光照特性。
       if (face.materialIndex !== materialIndex) {
         materialIndex = face.materialIndex;
 

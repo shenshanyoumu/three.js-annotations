@@ -15,7 +15,9 @@ var geometryId = 0;
 
 function Geometry() {
   // 几何体利用偶数来作为ID
-  Object.defineProperty(this, "id", { value: (geometryId += 2) });
+  Object.defineProperty(this, "id", { 
+    value: (geometryId += 2) 
+  });
 
   this.uuid = _Math.generateUUID();
 
@@ -46,10 +48,14 @@ function Geometry() {
 
   this.elementsNeedUpdate = false;
   this.verticesNeedUpdate = false;
+
+  // 纹理的UV映射
   this.uvsNeedUpdate = false;
   this.normalsNeedUpdate = false;
   this.colorsNeedUpdate = false;
   this.lineDistancesNeedUpdate = false;
+
+  // threejs中模型存在嵌套结构，通过add、remove进行管理
   this.groupsNeedUpdate = false;
 }
 

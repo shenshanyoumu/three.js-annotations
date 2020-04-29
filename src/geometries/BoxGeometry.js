@@ -8,7 +8,8 @@ import { BufferGeometry } from "../core/BufferGeometry.js";
 import { Float32BufferAttribute } from "../core/BufferAttribute.js";
 import { Vector3 } from "../math/Vector3.js";
 
-// 立方体模型，其中参数widthSegments默认为1，表示对立方体的width进行切分
+// 立方体模型，其中参数widthSegments默认为1，
+// 表示对立方体的width进行切分
 function BoxGeometry(
   width,
   height,
