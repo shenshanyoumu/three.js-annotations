@@ -239,7 +239,8 @@ Object.assign(Box3.prototype, {
       : true;
   },
 
-  // 判定两个包围盒的包含关系
+  // 判定两个包围盒的包含关系，联想到D3中计算circle-packing图的
+  // 包围关系
   containsBox: function(box) {
     return (
       this.min.x <= box.min.x &&

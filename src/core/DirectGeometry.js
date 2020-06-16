@@ -2,18 +2,22 @@ import { Vector2 } from "../math/Vector2.js";
 
 // 没有缓存属性的geometry
 function DirectGeometry() {
-  // 几何模型由顶点、每个三角面法向量、每个顶点颜色，UV纹理映射坐标构成
+  // 几何模型由顶点、每个三角面法向量、每个顶点颜色
+  // UV纹理映射坐标构成
   this.vertices = [];
   this.normals = [];
   this.colors = [];
   this.uvs = [];
   this.uvs2 = [];
 
-  // 几何模型的分组，可以形成具有变换整体的结构
+  // 几何模型的分组，可以对一组几何模型进行变换。
+  // 联想地月系统围绕太阳公转，以及月球围绕地球公转等
   this.groups = [];
 
   // 对于一些动画表现的增强
   this.morphTargets = {};
+
+  // 皮肤是一种纹理对象
   this.skinWeights = [];
   this.skinIndices = [];
 
@@ -21,7 +25,7 @@ function DirectGeometry() {
   this.boundingBox = null;
   this.boundingSphere = null;
 
-  // 当几何模型发生变化时，指示下列属性更新
+  // 当几何模型属性发生变化，控制下面更新开关
   this.verticesNeedUpdate = false;
   this.normalsNeedUpdate = false;
   this.colorsNeedUpdate = false;
@@ -35,13 +39,14 @@ Object.assign(DirectGeometry.prototype, {
     var groups = [];
     var materialIndex = undefined;
 
+    // 几何体模型的face数组，
     var faces = geometry.faces;
 
+    // 每个face元素由一系列三角形组成
     for (var i = 0; i < faces.length; i++) {
       var face = faces[i];
 
-      // materials
-
+      // 材质与纹理的差别在于，材质具有光照特性。
       if (face.materialIndex !== materialIndex) {
         materialIndex = face.materialIndex;
 

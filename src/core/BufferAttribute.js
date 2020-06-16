@@ -6,7 +6,7 @@ import { Color } from "../math/Color.js";
 /**
  * 模型属性缓冲对象,webgl中顶点着色器中attribute修饰的变量一般从缓冲区取值
  * @param {*} array typedArray，一般为buffer对象
- * @param {*} itemSize 每个属性需要的字节数
+ * @param {*} itemSize 每个属性需要的字节数，比如三维空间顶点坐标由3个浮点数构成
  * @param {*} normalized 属性值是否归一化处理
  */
 function BufferAttribute(array, itemSize, normalized) {
@@ -37,6 +37,7 @@ function BufferAttribute(array, itemSize, normalized) {
   this.version = 0;
 }
 
+// ES6提供的Proxy代理对象用于拦截对目标对象属性的操作
 Object.defineProperty(BufferAttribute.prototype, "needsUpdate", {
   set: function(value) {
     if (value === true) this.version++;
