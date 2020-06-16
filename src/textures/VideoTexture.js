@@ -10,8 +10,8 @@ import { Texture } from "./Texture.js";
  * @param {*} mapping
  * @param {*} wrapS ST坐标系贴图
  * @param {*} wrapT
- * @param {*} magFilter 过滤器
- * @param {*} minFilter
+ * @param {*} magFilter magnify filter，即将小纹理图映射到大尺寸表面
+ * @param {*} minFilter 将大尺寸纹理图映射到小尺寸模型表面
  * @param {*} format 文件格式
  * @param {*} type
  * @param {*} anisotropy 是否各向异性
