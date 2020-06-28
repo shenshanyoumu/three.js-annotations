@@ -33,10 +33,16 @@ function VideoTexture(
     mapping,
     wrapS,
     wrapT,
+
+    // magnify-即将小纹理图贴在大表面上，存在映射插值
     magFilter,
+    // minify-即将大纹理图贴在小表面上，存在纹理采样
     minFilter,
     format,
     type,
+
+    // 如果纹理对象存在各向异性，则可以沿着
+    // 高纹理像素密度采样，以至于贴图不模糊
     anisotropy
   );
 
