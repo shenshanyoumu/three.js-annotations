@@ -6,7 +6,8 @@ import { Texture } from "./Texture.js";
 import { NearestFilter } from "../constants.js";
 
 /**
- * 所谓数据贴图，其实需要依赖数据类型和格式的贴图。如果类型为THREE.UnsignedByteType，则使用Uint8Array来声明纹素数据
+ * 所谓数据贴图，其实需要依赖数据类型和格式的贴图。
+ * 如果类型为THREE.UnsignedByteType，则使用Uint8Array来声明纹素数据
  * @param {*} data 原始的数据源
  * @param {*} width
  * @param {*} height

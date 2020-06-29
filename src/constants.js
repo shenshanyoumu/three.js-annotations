@@ -1,5 +1,6 @@
 // 版本号
 export var REVISION = "91";
+
 // 内置的鼠标行为按钮
 export var MOUSE = { LEFT: 0, MIDDLE: 1, RIGHT: 2 };
 
