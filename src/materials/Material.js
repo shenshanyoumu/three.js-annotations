@@ -19,10 +19,14 @@ import { _Math } from "../math/Math.js";
 var materialId = 0;
 
 /**
- * 所谓材质，主要功能是给渲染器提供数据和光照算法。其中贴图就是数据，而光照算法非常多
+ * 所谓材质，主要功能是给渲染器提供数据和光照算法。
+ * 其中贴图就是数据，而光照算法非常多
  */
 function Material() {
-  Object.defineProperty(this, "id", { value: materialId++ });
+  // 材质对象的编号全局唯一
+  Object.defineProperty(this, "id", { 
+    value: materialId++ 
+  });
 
   this.uuid = _Math.generateUUID();
 
@@ -34,12 +38,18 @@ function Material() {
 
   this.blending = NormalBlending;
   this.side = FrontSide;
+
+  // 表示朴素的单色着色，即每个表面用一种颜色表示
   this.flatShading = false;
-  this.vertexColors = NoColors; // THREE.NoColors, THREE.VertexColors, THREE.FaceColors
+
+  // THREE.NoColors, THREE.VertexColors, THREE.FaceColors
+  this.vertexColors = NoColors; 
 
   this.opacity = 1;
   this.transparent = false;
 
+  //两种颜色的混合过程，需要设定两种颜色的权重
+  //以及两种颜色的混合方式，比如补色
   this.blendSrc = SrcAlphaFactor;
   this.blendDst = OneMinusSrcAlphaFactor;
   this.blendEquation = AddEquation;
@@ -47,10 +57,14 @@ function Material() {
   this.blendDstAlpha = null;
   this.blendEquationAlpha = null;
 
+  //是否需要进行片元深度检测，注意在片元着色中
+  //不会进行深度检测，最终生成的颜色缓冲区和z-buffer来
+  //进行深度检测
   this.depthFunc = LessEqualDepth;
   this.depthTest = true;
   this.depthWrite = true;
 
+  //裁剪平面、裁剪交叉检测和裁剪阴影效果
   this.clippingPlanes = null;
   this.clipIntersection = false;
   this.clipShadows = false;
@@ -79,6 +93,7 @@ function Material() {
   this.needsUpdate = true;
 }
 
+// Material材质对象继承事件分发能力
 Material.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
   constructor: Material,
 
@@ -160,63 +175,104 @@ Material.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     data.uuid = this.uuid;
     data.type = this.type;
 
+    // 材质对象的名称
     if (this.name !== "") data.name = this.name;
 
-    if (this.color && this.color.isColor) data.color = this.color.getHex();
+    // 材质基底色
+    if (this.color && this.color.isColor) 
+      data.color = this.color.getHex();
 
-    if (this.roughness !== undefined) data.roughness = this.roughness;
-    if (this.metalness !== undefined) data.metalness = this.metalness;
+    // 材质粗糙程度
+    if (this.roughness !== undefined) 
+      data.roughness = this.roughness;
 
+    // 材质金属性，用于光照着色
+    if (this.metalness !== undefined) 
+      data.metalness = this.metalness;
+
+    // 材质发射的光线颜色和光照强度
     if (this.emissive && this.emissive.isColor)
       data.emissive = this.emissive.getHex();
+
     if (this.emissiveIntensity !== 1)
       data.emissiveIntensity = this.emissiveIntensity;
 
+    // 材质的镜面反射颜色属性
     if (this.specular && this.specular.isColor)
       data.specular = this.specular.getHex();
-    if (this.shininess !== undefined) data.shininess = this.shininess;
-    if (this.clearCoat !== undefined) data.clearCoat = this.clearCoat;
+
+    // 材质的光泽属性
+    if (this.shininess !== undefined) 
+      data.shininess = this.shininess;
+
+    if (this.clearCoat !== undefined) 
+      data.clearCoat = this.clearCoat;
+
     if (this.clearCoatRoughness !== undefined)
       data.clearCoatRoughness = this.clearCoatRoughness;
 
-    if (this.map && this.map.isTexture) data.map = this.map.toJSON(meta).uuid;
+    // 材质的纹理属性
+    if (this.map && this.map.isTexture) 
+      data.map = this.map.toJSON(meta).uuid;
+    
+    // 材质的alpha通道纹理属性，控制透明度
     if (this.alphaMap && this.alphaMap.isTexture)
       data.alphaMap = this.alphaMap.toJSON(meta).uuid;
+    
+    // 材质的光照纹理属性，模拟光照过程
     if (this.lightMap && this.lightMap.isTexture)
       data.lightMap = this.lightMap.toJSON(meta).uuid;
+    
+    // 材质的bump纹理属性，可以模拟凹凸表面；
+    // 注意bump纹理只包含高度信息
     if (this.bumpMap && this.bumpMap.isTexture) {
       data.bumpMap = this.bumpMap.toJSON(meta).uuid;
       data.bumpScale = this.bumpScale;
     }
+
+    // 模型表面法向量纹理属性，实现更加精妙的纹理映射
     if (this.normalMap && this.normalMap.isTexture) {
       data.normalMap = this.normalMap.toJSON(meta).uuid;
       data.normalScale = this.normalScale.toArray();
     }
+
+    //displacement纹理比bump实现更加逼真的纹理贴图，但是
+    //存在性能开销
     if (this.displacementMap && this.displacementMap.isTexture) {
       data.displacementMap = this.displacementMap.toJSON(meta).uuid;
       data.displacementScale = this.displacementScale;
       data.displacementBias = this.displacementBias;
     }
+
+    //表面粗糙纹理属性
     if (this.roughnessMap && this.roughnessMap.isTexture)
       data.roughnessMap = this.roughnessMap.toJSON(meta).uuid;
+    
+    //模型表面金属光泽纹理
     if (this.metalnessMap && this.metalnessMap.isTexture)
       data.metalnessMap = this.metalnessMap.toJSON(meta).uuid;
 
+    //模型表面放光的纹理属性
     if (this.emissiveMap && this.emissiveMap.isTexture)
       data.emissiveMap = this.emissiveMap.toJSON(meta).uuid;
+    
+    //模型的镜面反射纹理属性
     if (this.specularMap && this.specularMap.isTexture)
       data.specularMap = this.specularMap.toJSON(meta).uuid;
 
+    // 在游戏场景中玻璃球反射环境物体常常采用
     if (this.envMap && this.envMap.isTexture) {
       data.envMap = this.envMap.toJSON(meta).uuid;
       data.reflectivity = this.reflectivity; // Scale behind envMap
     }
 
+    //
     if (this.gradientMap && this.gradientMap.isTexture) {
       data.gradientMap = this.gradientMap.toJSON(meta).uuid;
     }
 
     if (this.size !== undefined) data.size = this.size;
+    
     if (this.sizeAttenuation !== undefined)
       data.sizeAttenuation = this.sizeAttenuation;
 
@@ -246,6 +302,7 @@ Material.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     if (this.premultipliedAlpha === true)
       data.premultipliedAlpha = this.premultipliedAlpha;
 
+    //线框几何模型、包括线框中线段宽、线段间的连接形式
     if (this.wireframe === true) data.wireframe = this.wireframe;
     if (this.wireframeLinewidth > 1)
       data.wireframeLinewidth = this.wireframeLinewidth;
@@ -254,6 +311,7 @@ Material.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     if (this.wireframeLinejoin !== "round")
       data.wireframeLinejoin = this.wireframeLinejoin;
 
+    //模型的皮肤形变
     if (this.morphTargets === true) data.morphTargets = true;
     if (this.skinning === true) data.skinning = true;
 
@@ -352,6 +410,7 @@ Material.prototype = Object.assign(Object.create(EventDispatcher.prototype), {
     return this;
   },
 
+  // 材质对象销毁事件
   dispose: function() {
     this.dispatchEvent({ type: "dispose" });
   }

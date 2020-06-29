@@ -46,6 +46,7 @@ function MeshBasicMaterial(parameters) {
 
   this.type = "MeshBasicMaterial";
 
+  // 网格模型基底色
   this.color = new Color(0xffffff); // emissive
 
   this.map = null;
@@ -60,16 +61,21 @@ function MeshBasicMaterial(parameters) {
 
   this.alphaMap = null;
 
+  //环境纹理
   this.envMap = null;
   this.combine = MultiplyOperation;
+
+  //光照反射系数
   this.reflectivity = 1;
   this.refractionRatio = 0.98;
 
+  //线框的连接处形态
   this.wireframe = false;
   this.wireframeLinewidth = 1;
   this.wireframeLinecap = "round";
   this.wireframeLinejoin = "round";
 
+  //线框模型是否可以发生皮肤形变
   this.skinning = false;
   this.morphTargets = false;
 

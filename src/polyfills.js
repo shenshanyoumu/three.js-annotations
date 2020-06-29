@@ -51,7 +51,8 @@ if (Object.assign === undefined) {
         var source = arguments[index];
 
         if (source !== undefined && source !== null) {
-          // 注意for...in以不确定顺序来遍历当前对象及其原型对象上的可枚举属性值
+          // 注意for...in以不确定顺序来遍历当前对象
+          // 及其原型对象上的可枚举属性值
           for (var nextKey in source) {
             if (Object.prototype.hasOwnProperty.call(source, nextKey)) {
               output[nextKey] = source[nextKey];

@@ -28,7 +28,7 @@ import { Vector2 } from "../math/Vector2.js";
  */
 
 /**
- * 具有表面反射效果的网格材质
+ * 比Lambert光照效果更加逼真的基于表面法向量的材质
  * @param {*} parameters
  */
 function MeshNormalMaterial(parameters) {

@@ -25,7 +25,7 @@ import { BasicDepthPacking } from "../constants.js";
  */
 
 /**
- * 具有深度信息的网格材质
+ * 具有深度信息的线框材质;与基础xian
  * @param {*} parameters
  */
 function MeshDepthMaterial(parameters) {
@@ -42,6 +42,7 @@ function MeshDepthMaterial(parameters) {
 
   this.alphaMap = null;
 
+  //displacement纹理比bump纹理更加逼真，但是也带来更大计算开销
   this.displacementMap = null;
   this.displacementScale = 1;
   this.displacementBias = 0;
@@ -49,6 +50,7 @@ function MeshDepthMaterial(parameters) {
   this.wireframe = false;
   this.wireframeLinewidth = 1;
 
+  //雾化效果可以是距离线性产生，也可以是其他更复杂模型
   this.fog = false;
   this.lights = false;
 

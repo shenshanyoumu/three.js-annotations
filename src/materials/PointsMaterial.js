@@ -29,6 +29,8 @@ function PointsMaterial(parameters) {
   this.map = null;
 
   this.size = 1;
+
+  // 随着与相机距离的变化而产生点模型尺寸变小的视觉模拟
   this.sizeAttenuation = true;
 
   this.lights = false;
