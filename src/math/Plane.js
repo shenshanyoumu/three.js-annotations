@@ -81,8 +81,8 @@ Object.assign(Plane.prototype, {
     return this;
   },
 
-  //注意constant变量是平面与原点在世界坐标系中的距离
-  // 而point和normal相对于平面的局部坐标系
+  // 注意constant变量是平面与原点在世界坐标系中的距离
+  // 而point和normal是相对于平面模型的局部坐标系
   distanceToPoint: function(point) {
     return this.normal.dot(point) + this.constant;
   },

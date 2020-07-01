@@ -17,12 +17,17 @@ function WebGL2Renderer(parameters) {
 
   parameters = parameters || {};
 
-  //先创建canvas元素
+  // 先创建canvas元素，注意命名空间用于辅助浏览器选择特定的解析器来
+  // 来执行canvas接口API。类似HTML的DTD文件
   var _canvas =
       parameters.canvas !== undefined
         ? parameters.canvas
         : document.createElementNS("http://www.w3.org/1999/xhtml", "canvas"),
+   
     _context = parameters.context !== undefined ? parameters.context : null,
+   
+    // alpha通道、深度关联对象、模板管理对象，都是帧缓冲对象所关联的
+    // 注意在渲染系统中可以将场景渲染到帧缓冲，也可以直接渲染为颜色缓冲输出
     _alpha = parameters.alpha !== undefined ? parameters.alpha : false,
     _depth = parameters.depth !== undefined ? parameters.depth : true,
     _stencil = parameters.stencil !== undefined ? parameters.stencil : true,

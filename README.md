@@ -129,6 +129,22 @@ Phong冯式高光着色模型，可以根据光照入射角、观察者视角和
 在点云系统中，点材质可定义点对象的基底色、纹理对象、尺寸等属性
 
 
+### Renders渲染器(**`核心概念`**,难度系数:`5/5`) 
+three.js库是一个渲染库，即该库的核心能力是将几何模型通过渲染管线转换为屏幕上的图像。与图表库D3.js抽象了绘制API一样，three.js的渲染API也进行了屏蔽，一般采用canvas的绘制API，当然也支持CSSRender等  
+
+(1)shaders着色器目录  
+UniformsUtils: 顶点着色器和片元着色器通过uniform修饰的变量来传递参数。其中uniform可以修饰的变量类型包括matrix、vector、texture和color等。这个模块的作用就是提供对uniform修饰的变量的合并和复制操作  
+
+UniformsLibs: 定义了常用的贴图模型、光源类型，以及纹理映射坐标系统等  
+
+
+ShaderLib: 在ShaderLib目录下才是完整的可被编译使用的着色器，GLSL着色器使用C-like语言编写，通过#include语法引入ShaderChunk目录下的着色器片段代码
+
+ShaderChunk: 定义了大量的three.js内部使用的着色器代码片段。注意里面BRDF-双向反射分布函数光照着色、各种纹理着色器的实现比较复杂  
+
+(2)webvr目录  
+
+
 
 
 

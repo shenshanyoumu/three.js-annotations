@@ -18,6 +18,8 @@ var _Math = {
       var d1 = (Math.random() * 0xffffffff) | 0;
       var d2 = (Math.random() * 0xffffffff) | 0;
       var d3 = (Math.random() * 0xffffffff) | 0;
+
+      // d0数值的二进制进行逐字节移位操作
       var uuid =
         lut[d0 & 0xff] +
         lut[(d0 >> 8) & 0xff] +
@@ -40,7 +42,7 @@ var _Math = {
         lut[(d3 >> 16) & 0xff] +
         lut[(d3 >> 24) & 0xff];
 
-      //  字符串的转换操作后返回新的字符串，
+      // 字符串的转换操作后返回新的字符串，
       // 而JS垃圾回收器回收堆栈空间
       return uuid.toUpperCase();
     };

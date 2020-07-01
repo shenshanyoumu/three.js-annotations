@@ -5,8 +5,14 @@
 import { Matrix4 } from "../../math/Matrix4.js";
 import { Vector4 } from "../../math/Vector4.js";
 import { Vector3 } from "../../math/Vector3.js";
+
+//四元数用于坐标变换
 import { Quaternion } from "../../math/Quaternion.js";
+
+//阵列相机，可以降低模组厚度，一般手机使用阵列相机
 import { ArrayCamera } from "../../cameras/ArrayCamera.js";
+
+// 透视相机
 import { PerspectiveCamera } from "../../cameras/PerspectiveCamera.js";
 
 /**
@@ -33,7 +39,8 @@ function WebVRManager(renderer) {
     frameData = new window.VRFrameData();
   }
 
-  // 之所以进行矩阵逆运算，其实道理很简单。就是在VR中需要将屏幕中的输入转换为3D空间中的运动
+  // 之所以进行矩阵逆运算，其实道理很简单。
+  // 就是在VR中需要将屏幕中的输入转换为3D空间中的运动
   var matrixWorldInverse = new Matrix4();
 
   var tempQuaternion = new Quaternion();

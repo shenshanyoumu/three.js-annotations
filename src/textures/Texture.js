@@ -66,11 +66,12 @@ function Texture(
   this.wrapS = wrapS !== undefined ? wrapS : ClampToEdgeWrapping;
   this.wrapT = wrapT !== undefined ? wrapT : ClampToEdgeWrapping;
 
+  // 当纹理图像与模型表面尺寸不一致时需要进行缩放采样过程
   this.magFilter = magFilter !== undefined ? magFilter : LinearFilter;
   this.minFilter =
     minFilter !== undefined ? minFilter : LinearMipMapLinearFilter;
 
-  // 各向异性
+  // 各向异性，可以增强纹理贴图的清晰度
   this.anisotropy = anisotropy !== undefined ? anisotropy : 1;
 
   this.format = format !== undefined ? format : RGBAFormat;

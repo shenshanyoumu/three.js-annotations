@@ -1,7 +1,9 @@
 #ifndef saturate
+    // 宏函数，将饱和度参数a限定在[0,1]
 	#define saturate(a) clamp( a, 0.0, 1.0 )
 #endif
 
+//toneMapping用于进行HDR高动态范围光照的技术
 uniform float toneMappingExposure;
 uniform float toneMappingWhitePoint;
 
