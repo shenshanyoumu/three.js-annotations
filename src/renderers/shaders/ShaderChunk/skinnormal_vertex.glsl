@@ -1,5 +1,5 @@
 #ifdef USE_SKINNING
-
+    // 骨骼矩阵带动皮肤矩阵变化
 	mat4 skinMatrix = mat4( 0.0 );
 	skinMatrix += skinWeight.x * boneMatX;
 	skinMatrix += skinWeight.y * boneMatY;

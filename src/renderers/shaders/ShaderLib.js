@@ -1,4 +1,8 @@
+
+// 定义了大量内置的着色器片段
 import { ShaderChunk } from "./ShaderChunk.js";
+
+// 辅助工具，用于对着色器片段进行代码融合处理
 import { UniformsUtils } from "./UniformsUtils.js";
 import { Vector3 } from "../../math/Vector3.js";
 import { UniformsLib } from "./UniformsLib.js";
@@ -8,8 +12,9 @@ import { Color } from "../../math/Color.js";
  * 着色器处理库
  */
 var ShaderLib = {
+  // 基础着色对象，包括uniform修饰的变量、线框基础顶点着色器
+  // 线框基础片元着色器
   basic: {
-    // 规格化的着色合并处理
     uniforms: UniformsUtils.merge([
       UniformsLib.common,
       UniformsLib.specularmap,
@@ -23,6 +28,7 @@ var ShaderLib = {
     fragmentShader: ShaderChunk.meshbasic_frag
   },
 
+  //Lambert光照着色，
   lambert: {
     uniforms: UniformsUtils.merge([
       UniformsLib.common,
@@ -34,6 +40,7 @@ var ShaderLib = {
       UniformsLib.fog,
       UniformsLib.lights,
       {
+        // 自发光的光照颜色
         emissive: { value: new Color(0x000000) }
       }
     ]),
@@ -95,7 +102,9 @@ var ShaderLib = {
   },
 
   points: {
-    uniforms: UniformsUtils.merge([UniformsLib.points, UniformsLib.fog]),
+    uniforms: UniformsUtils.merge(
+      [UniformsLib.points,
+       UniformsLib.fog]),
 
     vertexShader: ShaderChunk.points_vert,
     fragmentShader: ShaderChunk.points_frag
@@ -116,7 +125,7 @@ var ShaderLib = {
     fragmentShader: ShaderChunk.linedashed_frag
   },
 
-  // 深度信息
+  // 深度着色
   depth: {
     uniforms: UniformsUtils.merge([
       UniformsLib.common,
@@ -127,6 +136,7 @@ var ShaderLib = {
     fragmentShader: ShaderChunk.depth_frag
   },
 
+  // 表面法向量着色对象
   normal: {
     uniforms: UniformsUtils.merge([
       UniformsLib.common,
