@@ -53,6 +53,9 @@ function WebVRManager(renderer) {
 
   var cameraR = new PerspectiveCamera();
   cameraR.bounds = new Vector4(0.5, 0.0, 0.5, 1.0);
+  
+  // three.js也有图层的概念，不过一般而言三维场景中所有模型
+  // 都在同一个图层
   cameraR.layers.enable(2);
 
   var cameraVR = new ArrayCamera([cameraL, cameraR]);

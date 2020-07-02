@@ -6,14 +6,17 @@
 
 var AnimationUtils = {
 
-	// same as Array.prototype.slice, but also works on typed arrays
+	// same as Array.prototype.slice, 
+	// but also works on typed arrays
 	arraySlice: function ( array, from, to ) {
 
 		if ( AnimationUtils.isTypedArray( array ) ) {
 
 			// in ios9 array.subarray(from, undefined) will return empty array
 			// but array.subarray(from) or array.subarray(from, len) is correct
-			return new array.constructor( array.subarray( from, to !== undefined ? to : array.length ) );
+			return new array.constructor(
+				 array.subarray( from, to !== undefined ? to : array.length
+				 ) );
 
 		}
 
@@ -24,8 +27,8 @@ var AnimationUtils = {
 	// converts an array to a specific type
 	convertArray: function ( array, type, forceClone ) {
 
-		if ( ! array || // let 'undefined' and 'null' pass
-				! forceClone && array.constructor === type ) return array;
+		if ( ! array || ! forceClone && array.constructor === type )
+			 return array;
 
 		if ( typeof type.BYTES_PER_ELEMENT === 'number' ) {
 
@@ -37,6 +40,8 @@ var AnimationUtils = {
 
 	},
 
+	// TypedArray底层实现采用字节存储，而不同的类型
+	// 通过DataView来解释和访问
 	isTypedArray: function ( object ) {
 
 		return ArrayBuffer.isView( object ) &&
@@ -47,6 +52,7 @@ var AnimationUtils = {
 	// returns an array by which times and values can be sorted
 	getKeyframeOrder: function ( times ) {
 
+		// 数组元素升序排序器
 		function compareTime( i, j ) {
 
 			return times[ i ] - times[ j ];
@@ -64,6 +70,8 @@ var AnimationUtils = {
 	},
 
 	// uses the array previously returned by 'getKeyframeOrder' to sort data
+	// 在webgl中采用interleaved方式来提高数据传输效率，而对数据的
+	//拆解通过offset+stride方式进行
 	sortedArray: function ( values, stride, order ) {
 
 		var nValues = values.length;

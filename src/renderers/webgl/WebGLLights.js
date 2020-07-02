@@ -41,6 +41,8 @@ function UniformsCache() {
             direction: new Vector3(),
             color: new Color(),
             distance: 0,
+
+            // 聚光灯的锥状体，decay模拟光照随着与光源距离而衰减
             coneCos: 0,
             penumbraCos: 0,
             decay: 0,
