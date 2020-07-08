@@ -4,10 +4,10 @@
  * @author David Sarno / http://lighthaus.us/
  */
 
+
 var AnimationUtils = {
 
-	// same as Array.prototype.slice, 
-	// but also works on typed arrays
+	// 注意TypedArray和普通的Array原型方法slice会创建新的数组对象
 	arraySlice: function ( array, from, to ) {
 
 		if ( AnimationUtils.isTypedArray( array ) ) {
@@ -70,8 +70,8 @@ var AnimationUtils = {
 	},
 
 	// uses the array previously returned by 'getKeyframeOrder' to sort data
-	// 在webgl中采用interleaved方式来提高数据传输效率，而对数据的
-	//拆解通过offset+stride方式进行
+	// 在webgl中采用interleaved方式整合多个数据源来提高数据传输效率，而对数据的
+	// 拆解通过offset+stride方式进行
 	sortedArray: function ( values, stride, order ) {
 
 		var nValues = values.length;

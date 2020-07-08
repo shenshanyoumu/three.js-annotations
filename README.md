@@ -161,7 +161,14 @@ ShaderChunk: 定义了大量的three.js内部使用的着色器代码片段。�
 (4)PropertyMixer  
 所谓属性混合器，其实就是对属性进行插值混合处理。目前主要是线性插值和球面插值两种方式。  
 
-(5)AnimationAction  
+(5)AnimationClip  
+用于对多个keyframeTrack对象进行编排，表示一个动画过程。注意场景动画中可能存在多个AnimationClip，比如角色动画中一个AnimationClip控制行走，一个AnimationClip控制跳跃，另一个AnimationClip控制慢走等  
+
+(6)AnimationAction  
+用于对AnimationClip进行调度的控制对象，控制动画的循环模式、淡入/淡出等  
+
+(7)AnimationMixer  
+ 对三维场景中特定模型的动画播放对象，当场景中存在多个独立动画过程，则每个动画对象由各自的AnimationMixer控制。实际上AnimationMixer只有少量的属性和方法，因为AnimationMixer被AnimationAction控制。
 
 
 
