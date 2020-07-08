@@ -16,6 +16,7 @@ function PropertyMixer(binding, typeName, valueSize) {
     this.binding = binding;
     this.valueSize = valueSize;
 
+
     var bufferType = Float64Array,
         mixFunction;
 
@@ -159,7 +160,7 @@ Object.assign(PropertyMixer.prototype, {
 
     },
 
-    // apply the state previously taken via 'saveOriginalState' to the binding
+    // restore和save成对，在canvas文档中出现过
     restoreOriginalState: function() {
 
         var originalValueOffset = this.valueSize * 3;
@@ -184,13 +185,14 @@ Object.assign(PropertyMixer.prototype, {
 
     },
 
-    // 球面插值
+    // 球面插值/弧线插值函数 
     _slerp: function(buffer, dstOffset, srcOffset, t) {
 
         Quaternion.slerpFlat(buffer, dstOffset, buffer, dstOffset, buffer, srcOffset, t);
 
     },
 
+    // 线性插值函数，即对参数t和区间[a,b]的线性插值
     _lerp: function(buffer, dstOffset, srcOffset, t, stride) {
 
         var s = 1 - t;

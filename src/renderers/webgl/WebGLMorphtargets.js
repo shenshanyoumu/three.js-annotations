@@ -7,7 +7,9 @@ function absNumericalSort(a, b) {
 }
 
 /**
- * morph主要用于模型的形变处理，在3D渲染中具有精细化的表面形变可以产生逼真的效果
+ * morph主要用于模型的形变处理，
+ * 在3D渲染中具有精细化的表面形变可以产生逼真的效果
+ * morph或者skinn形变都是通过骨骼动画联动的
  * @param {*} gl
  */
 function WebGLMorphtargets(gl) {

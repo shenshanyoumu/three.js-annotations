@@ -24,10 +24,20 @@ import { AnimationUtils } from './AnimationUtils.js';
  * @author tschw
  */
 
+/**
+ * KeyframeTrack是three动画体系中最基础的要素，用于设定
+ * 在时间维度上对特定属性值的渐变过程
+ * @param {*} name 
+ * @param {*} times 
+ * @param {*} values 
+ * @param {*} interpolation 
+ */
 function KeyframeTrack( name, times, values, interpolation ) {
 
-	if ( name === undefined ) throw new Error( 'THREE.KeyframeTrack: track name is undefined' );
-	if ( times === undefined || times.length === 0 ) throw new Error( 'THREE.KeyframeTrack: no keyframes in track named ' + name );
+	if ( name === undefined ) 
+		throw new Error( 'THREE.KeyframeTrack: track name is undefined' );
+	if ( times === undefined || times.length === 0 ) 
+		throw new Error( 'THREE.KeyframeTrack: no keyframes in track named ' + name );
 
 	this.name = name;
 

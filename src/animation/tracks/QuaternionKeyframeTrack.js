@@ -11,6 +11,7 @@ import { QuaternionLinearInterpolant } from '../../math/interpolants/QuaternionL
  * @author tschw
  */
 
+/** 四元数关键帧轨道，用于控制模型的坐标变换过程 */
 function QuaternionKeyframeTrack( name, times, values, interpolation ) {
 
 	KeyframeTrack.call( this, name, times, values, interpolation );

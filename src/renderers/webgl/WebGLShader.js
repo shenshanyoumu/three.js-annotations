@@ -19,7 +19,7 @@ function addLineNumbers(string) {
  * @param {*} string 着色器字符串，这是WebGL最核心的部分
  */
 function WebGLShader(gl, type, string) {
-  // 创建着色器并编译
+  // 创建着色器并编译，在webgl中有完整的流程
   var shader = gl.createShader(type);
   gl.shaderSource(shader, string);
   gl.compileShader(shader);

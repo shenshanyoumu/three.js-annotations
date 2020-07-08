@@ -18,7 +18,7 @@ import {
  *
  */
 
-//  动画事件对象
+//  动画事件对象，用于管理AnimationClip对象，可以控制动画的渐入\渐出效果等
 function AnimationAction(mixer, clip, localRoot) {
   // 混合器、裁剪和局部根节点
   this._mixer = mixer;
@@ -81,6 +81,8 @@ function AnimationAction(mixer, clip, localRoot) {
   this.zeroSlopeAtEnd = true; // clips for start, loop and end
 }
 
+
+// 对动画过程的调度
 Object.assign(AnimationAction.prototype, {
   // State & Scheduling
 

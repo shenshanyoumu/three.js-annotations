@@ -19,6 +19,7 @@ NumberKeyframeTrack.prototype = Object.assign( Object.create( KeyframeTrack.prot
 
 	constructor: NumberKeyframeTrack,
 
+	// 通过该属性定义插值类型
 	ValueTypeName: 'number'
 
 	// ValueBufferType is inherited
