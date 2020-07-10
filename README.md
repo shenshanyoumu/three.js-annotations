@@ -171,6 +171,24 @@ ShaderChunk: 定义了大量的three.js内部使用的着色器代码片段。�
  对三维场景中特定模型的动画播放对象，当场景中存在多个独立动画过程，则每个动画对象由各自的AnimationMixer控制。实际上AnimationMixer只有少量的属性和方法，因为AnimationMixer被AnimationAction控制。
 
 
+### audio音频动效(**`核心概念`**,难度系数:`3.5/5`)  
+three.js库的音频系统遵循WebAudio规范，因此可以在支持WebAudio的浏览器端直接使用厂商实现。
+
+(1)AudioContext  
+ctx对象控制音频的处理、播放和分析等，类似canvas的ctx对象。
+
+(2)AudioAnalyser  
+音频分析器接受audioCtx上下文对象和FFT分析算法模型，分析音频数据的频域、时域信息  
+ 
+(3)PositionalAudio  
+空间音频是目前三维场景中的重要辅助要素，所谓空间音频就是声音源位于空间某处，向观察者传播中的衰减变换过程  
+
+(4)AudioListener  
+音频监听器，监听处理音频的增益、空间传播变化过程
+
+
+
+
 
 
 

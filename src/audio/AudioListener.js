@@ -16,7 +16,7 @@ function AudioListener() {
   // 获得音频播放上下文对象
   this.context = AudioContext.getContext();
 
-  // 音频增益
+  // 音频增益,即声音强度信息
   this.gain = this.context.createGain();
   this.gain.connect(this.context.destination);
 
@@ -66,7 +66,8 @@ AudioListener.prototype = Object.assign(Object.create(Object3D.prototype), {
   },
 
   // 由于AudioListener本身继承Object3D，因此可以重写updateMatrixWorld方法
-  // 这个方法在此的实际意义其实用于音频在3D空间的传播控制，可以比较真实的模拟声音的空间传播
+  // 这个方法在此的实际意义其实用于音频在3D空间的传播控制，
+  // 可以比较真实的模拟声音的空间传播
   updateMatrixWorld: (function() {
     var position = new Vector3();
     var quaternion = new Quaternion();

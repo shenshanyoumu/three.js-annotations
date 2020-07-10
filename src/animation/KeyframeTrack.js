@@ -36,6 +36,7 @@ function KeyframeTrack( name, times, values, interpolation ) {
 
 	if ( name === undefined ) 
 		throw new Error( 'THREE.KeyframeTrack: track name is undefined' );
+		
 	if ( times === undefined || times.length === 0 ) 
 		throw new Error( 'THREE.KeyframeTrack: no keyframes in track named ' + name );
 
