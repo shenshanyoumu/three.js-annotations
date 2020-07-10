@@ -6,7 +6,7 @@ import { Vector3 } from "../math/Vector3.js";
 import { Audio } from "./Audio.js";
 import { Object3D } from "../core/Object3D.js";
 
-// 音频是声音在时间轴上的函数，因此需要位置相关的类
+// 空间音频
 function PositionalAudio(listener) {
   Audio.call(this, listener);
 
