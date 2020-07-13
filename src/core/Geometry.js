@@ -13,6 +13,8 @@ import { _Math } from "../math/Math.js";
 // Geometry uses even numbers as Id
 var geometryId = 0;
 
+// Three库内部使用BufferGeometry类，但是开发者习惯
+// Geometry类
 function Geometry() {
   // 几何体利用偶数来作为ID
   Object.defineProperty(this, "id", { 
@@ -34,7 +36,8 @@ function Geometry() {
   this.morphTargets = [];
   this.morphNormals = [];
 
-  // 皮肤其实就是一种纹理对象
+  // 模型的皮肤动作由相关联的骨骼动画带动
+  // skinWeights属性数组描述了几何模型顶点序列的权重
   this.skinWeights = [];
   this.skinIndices = [];
 

@@ -1,6 +1,6 @@
 import { Vector2 } from "../math/Vector2.js";
 
-// 没有缓存属性的geometry
+// 该构造函数用于将Geometry转换为BufferGeometry
 function DirectGeometry() {
   // 几何模型由顶点、每个三角面法向量、每个顶点颜色
   // UV纹理映射坐标构成
@@ -17,7 +17,7 @@ function DirectGeometry() {
   // 对于一些动画表现的增强
   this.morphTargets = {};
 
-  // 皮肤是一种纹理对象
+  // 皮肤纹理
   this.skinWeights = [];
   this.skinIndices = [];
 

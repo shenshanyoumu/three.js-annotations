@@ -2,7 +2,7 @@
  * @author mrdoob / http://mrdoob.com/
  */
 
-//  资源加载器
+// 数字资产加载器
 function LoadingManager(onLoad, onProgress, onError) {
   var scope = this;
 
@@ -11,6 +11,7 @@ function LoadingManager(onLoad, onProgress, onError) {
   var itemsTotal = 0;
   var urlModifier = undefined;
 
+  // 加载中的一系列钩子函数
   this.onStart = undefined;
   this.onLoad = onLoad;
   this.onProgress = onProgress;

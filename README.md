@@ -170,8 +170,35 @@ ShaderChunk: 定义了大量的three.js内部使用的着色器代码片段。�
 (7)AnimationMixer  
  对三维场景中特定模型的动画播放对象，当场景中存在多个独立动画过程，则每个动画对象由各自的AnimationMixer控制。实际上AnimationMixer只有少量的属性和方法，因为AnimationMixer被AnimationAction控制。
 
+### Loader数字资产加载(难度系数:`3.5/5`)  
+three.js是一个三维场景渲染库，因此并不关注如何构建复杂的三维空间。但是在实际应用中，复杂的场景存在百万级的顶点数据、三角化后的表面成千上万，因此无法通过编程方式来绘制场景要素。three.js提供大量辅助模块来加载标准的工业级数字资产，并且还可以自定义数字资产格式，因此通过第三方设计软件比如Blender、3DMax、Maya等快速构建复杂的模块数据，供three.js进行解析和渲染  
 
-### audio音频动效(**`核心概念`**,难度系数:`3.5/5`)  
+(1)LoadingManager  
+通过网络加载数字资产模块，加载过程中提供一系列钩子函数来辅助开发者进行增强处理。开发者可以基于LoadingManager进行自定义扩展，方便不同应用的使用  
+
+(2)FontLoader/FileLoader  
+字体加载器，专门用于加载字体库，其内部使用FIleLoader来加载文件资源。而FileLoader是一个比较低层次的加载器，其不需要考虑文件结构，响应报文格式包括文本、Blob、文档、JSON、arrayBuffer等。FileLoader使用XMLHTTPRequest规范，当然随着W3C的网络接口的丰富，甚至可以使用浏览器的Fetch规范实现  
+
+(3)ImageLoader/ImageBitmap    
+专门用于加载图像的加载器，被纹理加载器在内部使用。加载的图像可以写入canvas，或者作为帧缓冲对象的一部分。ImageBitmapLoader用于加载位图，用于图像坐标系和透视坐标系存在差异，因此加载器根据配置项进行处理  
+
+(4)TextureLoader/DataTextureLoader    
+纹理加载器在内部使用图像加载器来加载纹理图像，而数字纹理加载器用于加载通用的二进制纹理格式，比如RGBE、HDR等  
+
+(5)BufferGeometryLoader  
+专门用于加载BufferGeometry的模块，其内部实现使用FileLoader来加载文件，值得注意的是特化的加载器才有parse方法，用于解析具体的资产格式  
+
+(6)AnimationLoader  
+在three.js的动画系统中，keyFrameTrack对象在时间维度上对某个属性进行插值提取关键帧；而AnimationClip可以控制一组keyFrameTrack来作为动画帧基础，对于复杂的三维应用，三方设计软件会导出带动效的角色模型，因此该加载器的作用就是加载动画数据文件 
+
+(7)MaterialLoader  
+在计算机图形学中，材质是一个复杂概念，主要作用于模型表面的光照过程，材质加载器的实现基于FileLoader来加载材质文件。材质对象本身也会依赖纹理对象，纹理对象可以在模型光照过程中产生高效逼真的渲染效果  
+
+(8)ObjectLoader  
+第三方设计软件导出的数字资产可能是一个独立的JSON对象，因此通过对象加载器进行加载并解析出场景渲染所需的全部信息，比如几何数据、材质数据、动效数据、纹理数据、图像数据等。这是一个非常通用强大的加载器，可以解析计算机图形学中任何的结构性对象
+
+
+### audio音频动效(难度系数:`3.5/5`)  
 three.js库的音频系统遵循WebAudio规范，因此可以在支持WebAudio的浏览器端直接使用厂商实现。
 
 (1)AudioContext  
